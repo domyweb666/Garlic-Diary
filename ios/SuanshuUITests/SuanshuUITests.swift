@@ -146,6 +146,21 @@ final class SuanshuUITests: XCTestCase {
         settle()
         shot("basket-after-review")
 
+        // 關掉重開：剛才記的那句、剝完的三瓣、做完的對帳都要還在
+        app.terminate()
+        app.launch()
+        let stillReviewed = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "這週對過了")).firstMatch
+        goTo(.basket)
+        XCTAssertTrue(stillReviewed.waitForExistence(timeout: 5), "重開之後籃子頁沒有「這週對過了」")
+        shot("relaunch-basket")
+        goTo(.main)
+        let stillSaved = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "今天說了 1 句")).firstMatch
+        XCTAssertTrue(stillSaved.waitForExistence(timeout: 5), "重開之後剝今天頁沒有「今天說了 1 句」")
+        XCTAssertTrue(button("改一下").waitForExistence(timeout: 5), "重開之後今天不是剝完的狀態")
+        shot("relaunch-main")
+
         // 設定頁：清除全部，再載示範資料
         goTo(.settings)
         shot("settings-top")

@@ -31,7 +31,7 @@
 
 沒有 Mac 也能看畫面。同一個 workflow 裡還有一個 `ui-test` job：在 macOS runner 上開 iPhone 模擬器，用 XCUITest（`SuanshuUITests/`）把主流程走一遍，每個畫面截一張圖。
 
-它走的流程：首次打開三步 → 記一句 → 剝三瓣（上午順、下午普通、晚上卡）→ 籃子頁 → 週對帳走到完成 → 設定頁清除全部資料 → 載示範資料 → 回剝今天頁。
+它走的流程：首次打開三步 → 記一句 → 剝三瓣（上午順、下午普通、晚上卡）→ 籃子頁 → 週對帳走到完成 → 關掉重開（那句、剝完的三瓣、對帳都要還在）→ 設定頁清除全部資料 → 載示範資料 → 回剝今天頁。
 
 看截圖：到那次 run 的 Artifacts，下載 `suanshu-ui-screenshots`，解開是一疊 PNG，檔名開頭的數字就是步驟順序；`notes.txt` 是測試中途的備註（例如中文打不進去、改打英文）。另一個 artifact `suanshu-ui-xcresult` 是完整的 `.xcresult` 和 log，有 Xcode 的人可以雙擊打開看每一步。
 

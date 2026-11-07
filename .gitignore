@@ -6,4 +6,5 @@ ios/DerivedData/
 ios/build*.log
 ios/Payload/
 ios/*.ipa
+ios/*.zip
 .DS_Store

@@ -1,0 +1,12 @@
+{
+  "name": "suanshu-limrun-walkthrough",
+  "private": true,
+  "type": "module",
+  "description": "在 Limrun 雲端 iPhone 模擬器走一遍蒜數 iOS 版的主流程並截圖",
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "@limrun/api": "^0.69.2"
+  }
+}

@@ -350,6 +350,7 @@ struct CaptureCard: View {
                 .padding(.vertical, 14)
                 .background(T.fill, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .focused($focused)
+                .accessibilityIdentifier("capture-field")
             HStack(spacing: 10) {
                 if speech.supported {
                     Button {

@@ -7,3 +7,6 @@ ios/build*.log
 ios/Payload/
 ios/*.ipa
 .DS_Store
+ios/*.xcresult
+ios/screenshots/
+ios/xcresult-attachments/

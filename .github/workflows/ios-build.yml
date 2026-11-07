@@ -1,0 +1,44 @@
+name: iOS build check
+
+on:
+  push:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-build.yml"
+  pull_request:
+    paths:
+      - "ios/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Suanshu for iOS Simulator
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build (Debug, simulator, no code signing)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Suanshu.xcodeproj \
+            -target Suanshu \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            ONLY_ACTIVE_ARCH=YES \
+            build 2>&1 | tee build.log | grep -E --line-buffered "error:|warning:|BUILD " || true
+          grep -q "BUILD SUCCEEDED" build.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ios/build.log

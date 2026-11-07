@@ -5,3 +5,7 @@
 手感原型 0.3，單檔網頁，資料只存在手機瀏覽器裡。
 
 使用：打開 GitHub Pages 網址，從 Safari「加入主畫面」。AI 對帳要到設定頁貼上自己的 Anthropic API 金鑰。
+
+## iOS 版
+
+原生 SwiftUI 版在 `ios/`，資料格式與網頁版相容，備份可以互相匯入。怎麼跑看 `ios/README.md`。

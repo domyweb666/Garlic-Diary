@@ -177,8 +177,13 @@ final class SuanshuUITests: XCTestCase {
 
     // MARK: - 找元件
 
+    /// 同名的按鈕可能同時有好幾顆：fullScreenCover 底下的三頁在元素樹裡還在，
+    /// 首次打開的錨點 chip 跟設定頁的 chip 都叫「關燈前」。挑畫面上按得到的那顆。
     private func button(_ label: String) -> XCUIElement {
-        app.buttons[label]
+        let q = app.buttons.matching(NSPredicate(format: "label == %@", label))
+        let all = q.allElementsBoundByIndex
+        if all.count <= 1 { return q.firstMatch }
+        return all.first { $0.isHittable } ?? all.first { onScreen($0) } ?? all[0]
     }
 
     /// 主畫面那顆「剝今天」。頁點也叫剝今天，用 identifier 把頁點排掉。

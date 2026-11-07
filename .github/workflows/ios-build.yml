@@ -163,7 +163,7 @@ jobs:
               for a in test.get("attachments", []):
                   src = os.path.join("xcresult-attachments", a["exportedFileName"])
                   name = a.get("suggestedHumanReadableName") or a["exportedFileName"]
-                  if os.path.isfile(src):
+                  if src.lower().endswith(".png") and os.path.isfile(src):
                       shutil.copy(src, os.path.join("screenshots", name))
           PY
           fi

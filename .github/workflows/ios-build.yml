@@ -1,0 +1,67 @@
+name: iOS build check
+
+on:
+  push:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-build.yml"
+  pull_request:
+    paths:
+      - "ios/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Suanshu (simulator check + unsigned device IPA)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build for simulator (compile check)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Suanshu.xcodeproj \
+            -target Suanshu \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tee build-sim.log | grep -E --line-buffered "error:|warning:|BUILD " || true
+          grep -q "BUILD SUCCEEDED" build-sim.log
+
+      - name: Build for device, unsigned (for sideloading)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Suanshu.xcodeproj \
+            -target Suanshu \
+            -sdk iphoneos \
+            -configuration Release \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            SYMROOT="$PWD/build" \
+            build 2>&1 | tee build-device.log | grep -E --line-buffered "error:|warning:|BUILD " || true
+          grep -q "BUILD SUCCEEDED" build-device.log
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "build/Release-iphoneos/Suanshu.app" Payload/
+          zip -qr Suanshu-unsigned.ipa Payload
+          ls -la Suanshu-unsigned.ipa
+
+      - name: Upload logs and IPA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suanshu-build
+          path: |
+            ios/build-sim.log
+            ios/build-device.log
+            ios/Suanshu-unsigned.ipa

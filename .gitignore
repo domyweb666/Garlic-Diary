@@ -3,5 +3,7 @@ ios/build/
 ios/**/xcuserdata/
 ios/**/*.xcuserstate
 ios/DerivedData/
-ios/build.log
+ios/build*.log
+ios/Payload/
+ios/*.ipa
 .DS_Store

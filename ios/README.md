@@ -15,21 +15,22 @@
 
 ## 怎麼跑
 
-需要一台 Mac 和 Xcode 16 以上。
+有 Mac 和 Xcode 16 以上：
 
 1. 打開 `ios/Suanshu.xcodeproj`。
 2. Target 的 Signing & Capabilities 選你的 Team。
 3. 接上 iPhone，Run。
 
-沒有 Mac 的話：
+沒有 Mac：
 
-- 推上 GitHub 之後，`.github/workflows/ios-build.yml` 會在 macOS runner 上編模擬器版。這只能確認程式編得過，不能裝到手機。
-- 要裝到手機一定要一台 Mac 簽名，借的、租的（MacinCloud 這類）都行。
+- 推上 GitHub 之後，`.github/workflows/ios-build.yml` 會在 macOS runner 上做兩件事：先編模擬器版確認程式編得過，再編一個沒簽名的 iPhone 版，打包成 `Suanshu-unsigned.ipa` 放在那次 run 的 artifact 裡。
+- 把 IPA 下載下來，用 Sideloadly 加你的 Apple ID 簽進 iPhone。免費帳號簽的七天到期，重簽一次就好。
+- 要上 TestFlight 或 App Store 還是得有一台 Mac，借的、租的都行。
 
 ## 目前的狀態
 
 0.4，第一次移植，還沒在任何機器上編譯過（寫程式的機器是 Windows）。
-第一次在 Xcode 開很可能有幾個要修的編譯錯誤。修完照手感原型的規矩上真機測：觸覺強度、落籃子的聲音、傾斜的靈敏度。
+第一次跑 CI 很可能有幾個要修的編譯錯誤，看 artifact 裡的 log 修。修完照手感原型的規矩上真機測：觸覺強度、落籃子的聲音、傾斜的靈敏度。
 
 ## 檔案
 

@@ -1,0 +1,798 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="蒜數"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style><title>蒜數</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 版面概念：iPhone 內建 app 的介面，三頁橫滑（左＝籃子、中＝剝今天、右＝設定）；只有系統紫是彩色，可愛交給蒜頭本身 */
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --fg:#000000; --fg2:rgba(60,60,67,.62); --fg3:rgba(60,60,67,.32);
+  --sep:rgba(60,60,67,.22); --fill:rgba(120,120,128,.12); --fill2:rgba(120,120,128,.2);
+  --accent:#AF52DE; --accent-press:#9A3FC8; --on-accent:#FFFFFF; --danger:#FF3B30; --leaf:#34C759;
+  --seg-good:#B566DC; --seg-mid:#E2CDEE; --seg-bad:#BDB8B4; --seg-empty:#F7F2F9; --rind:#F7A33C; --pith:#FFFDF9; --seed:#FFF8EA; --edge:#8E7A99; --skin:#EDE3D6; --root:#B8A58F;
+  --glass:rgba(255,255,255,.72); --glass-line:rgba(0,0,0,.06);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC","Helvetica Neue",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000000; --card:#1C1C1E; --fg:#FFFFFF; --fg2:rgba(235,235,245,.62); --fg3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.65); --fill:rgba(120,120,128,.24); --fill2:rgba(120,120,128,.36);
+  --accent:#BF5AF2; --accent-press:#A847D8; --on-accent:#FFFFFF; --danger:#FF453A; --leaf:#30D158;
+  --seg-good:#B05BE0; --seg-mid:#6B4A80; --seg-bad:#5A5652; --seg-empty:#2B2530; --rind:#D9821E; --pith:#1C1C1E; --seed:#F5E6CF; --edge:#A794B3; --skin:#5B5048; --root:#8D7A66;
+  --glass:rgba(44,44,46,.72); --glass-line:rgba(255,255,255,.08); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --card:#1C1C1E; --fg:#FFFFFF; --fg2:rgba(235,235,245,.62); --fg3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.65); --fill:rgba(120,120,128,.24); --fill2:rgba(120,120,128,.36);
+  --accent:#BF5AF2; --accent-press:#A847D8; --on-accent:#FFFFFF; --danger:#FF453A; --leaf:#30D158;
+  --seg-good:#B05BE0; --seg-mid:#6B4A80; --seg-bad:#5A5652; --seg-empty:#2B2530; --rind:#D9821E; --pith:#1C1C1E; --seed:#F5E6CF; --edge:#A794B3; --skin:#5B5048; --root:#8D7A66;
+  --glass:rgba(44,44,46,.72); --glass-line:rgba(255,255,255,.08); color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:17px;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+*{box-sizing:border-box}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+#app{position:relative;height:100%;overflow:hidden}
+#pager{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none}
+#pager::-webkit-scrollbar{display:none}
+#pager.locked{overflow-x:hidden}
+.page{flex:0 0 100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;position:relative;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:52px 40px}
+
+/* 頁面圓點 */
+#dots{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:8px 12px;border-radius:999px;
+  background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 0 0 .5px var(--glass-line);z-index:20;transition:opacity .25s}
+#dots.hide{opacity:0;pointer-events:none}
+#dots button{width:8px;height:8px;padding:0;border:0;border-radius:50%;background:var(--fg3)}
+#dots button[aria-current="true"]{background:var(--fg)}
+
+/* 標題 */
+.head h1{margin:0;font-size:34px;font-weight:700;letter-spacing:.2px;line-height:1.15}
+.head p{margin:4px 0 0;color:var(--fg2);font-size:17px}
+h2.sec{font-size:22px;font-weight:700;margin:28px 0 10px}
+h3.grp{font-size:13px;font-weight:400;color:var(--fg2);text-transform:none;margin:24px 18px 6px;letter-spacing:.2px}
+.foot{font-size:13px;color:var(--fg2);margin:8px 18px 0;line-height:1.45}
+
+.card{background:var(--card);border-radius:26px}
+.list{background:var(--card);border-radius:26px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 18px;position:relative;width:100%;border:0;background:none;text-align:left}
+.row+.row::before{content:"";position:absolute;top:0;left:18px;right:0;height:.5px;background:var(--sep)}
+.row .lab{flex:1;min-width:0}
+.row .val{color:var(--fg2);font-size:17px;text-align:right}
+.row .chev{color:var(--fg3);font-size:22px;line-height:1}
+.row.danger .lab{color:var(--danger)}
+.row.act .lab{color:var(--accent)}
+.row small{display:block;color:var(--fg2);font-size:14px;margin-top:2px;line-height:1.35}
+
+/* 主畫面 */
+#pMain{overflow:hidden;padding-bottom:0}
+#mainScroll{height:100%;overflow-y:auto;padding-bottom:240px;position:relative;z-index:3}
+#pile{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;transition:opacity .3s}
+#pile.dim{opacity:0}
+.hero{margin-top:22px;padding:26px 20px 22px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.heroOrange{width:150px;height:150px}
+.heroOrange svg{width:100%;height:100%;display:block}
+.heroOrange.pop{animation:pop .55s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.86)}100%{transform:scale(1)}}
+.hint{margin:0;color:var(--fg2);font-size:15px;text-align:center}
+.primary{display:block;width:100%;margin-top:18px;min-height:56px;border:0;border-radius:999px;background:var(--accent);color:var(--on-accent);
+  font-size:19px;font-weight:600;letter-spacing:.5px;transition:transform .12s,background .12s}
+.primary:active{transform:scale(.97);background:var(--accent-press)}
+.primary:disabled{background:var(--fill2);color:var(--fg3)}
+.textlink{display:block;margin:14px auto 0;border:0;background:none;color:var(--fg2);font-size:15px;padding:8px 12px}
+.note{margin:6px 0 0;text-align:center;font-size:13px;color:var(--fg2)}
+.pill{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:var(--fill);color:var(--fg);padding:8px 14px;font-size:15px}
+
+/* 剝的步驟 */
+.peel{margin-top:22px;padding:18px}
+.peelTop{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.peelTop .mini{width:58px;height:58px;flex:none}
+.segName{font-size:28px;font-weight:700;line-height:1.1}
+.segStep{font-size:15px;color:var(--fg2);margin-top:2px}
+textarea.say{display:block;width:100%;min-height:96px;resize:none;border:0;border-radius:16px;background:var(--fill);padding:14px 16px;font-size:20px;line-height:1.4}
+textarea.say::placeholder{color:var(--fg3)}
+.sayCap{font-size:13px;color:var(--fg2);margin:8px 4px 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{border:0;border-radius:999px;padding:7px 14px;background:var(--fill);font-size:15px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.choice{border:0;border-radius:24px;min-height:92px;font-size:22px;font-weight:600;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .12s}
+.choice:active{transform:scale(.95)}
+.choice i{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.9);display:block}
+.c-good{background:linear-gradient(160deg,#C77FE6,#AF52DE)}
+.c-mid{background:linear-gradient(160deg,#D3B3E6,#B58BCD)}
+.c-bad{background:linear-gradient(160deg,#A9A6A1,#8C8984)}
+.c-good i{background:#fff}
+.c-mid i{background:rgba(255,255,255,.75)}
+.c-bad i{background:rgba(255,255,255,.55)}
+.peelNav{display:flex;justify-content:space-between;margin-top:8px}
+.peelNav .textlink{margin:6px 0 0}
+
+/* 完成 */
+.doneLine{margin:0;font-size:20px;font-weight:600;text-align:center;line-height:1.4}
+.doneLine.fade{animation:fade .6s .25s both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.today{margin-top:14px}
+.today .row{min-height:52px}
+.dot{width:14px;height:14px;border-radius:50%;flex:none}
+.ctx{margin-top:16px;text-align:center}
+
+/* 盤子 */
+.month{padding:14px 12px 16px;margin-top:20px}
+.mHead{display:flex;align-items:center;justify-content:space-between;padding:0 6px 10px}
+.mHead b{font-size:17px;font-weight:600}
+.mHead button{border:0;background:var(--fill);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;color:var(--fg)}
+.mHead button:disabled{opacity:.3}
+.wk,.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wk span{font-size:12px;color:var(--fg2);text-align:center;padding-bottom:4px}
+.cal .cell{aspect-ratio:1;max-width:100%;min-width:0;display:flex;align-items:center;justify-content:center;position:relative}
+.cal .cell svg{width:88%;height:88%;display:block}
+.cal .cell .n{position:absolute;bottom:-1px;right:2px;font-size:10px;color:var(--fg3);font-variant-numeric:tabular-nums}
+.cal .cell.today::after{content:"";position:absolute;inset:1px;border-radius:50%;box-shadow:0 0 0 1.5px var(--accent)}
+.counts{padding:6px 0}
+.cRow{display:grid;grid-template-columns:44px 1fr;align-items:center;gap:12px;padding:10px 18px}
+.cRow+.cRow{border-top:.5px solid var(--sep)}
+.cRow b{font-weight:600;font-size:16px}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--fill)}
+.bar span{display:block;height:100%}
+.nums{font-size:13px;color:var(--fg2);margin-top:6px;font-variant-numeric:tabular-nums;display:flex;gap:12px;flex-wrap:wrap}
+.nums i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.banner{margin-top:14px;padding:12px 16px;border-radius:16px;background:var(--fill);font-size:14px;color:var(--fg2);display:flex;gap:10px;align-items:center;justify-content:space-between}
+.banner button{border:0;background:none;color:var(--accent);font-size:14px;padding:4px}
+
+/* 設定 */
+.seg{display:inline-flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.field{width:100%;border:0;background:var(--fill);border-radius:12px;padding:10px 12px;font-size:16px}
+input[type="time"].field,select.field{width:auto}
+.toggle{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:999px;background:var(--fill2);position:relative;flex:none;transition:background .2s;margin:0}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .2s}
+.toggle:checked{background:#34C759}
+.toggle:checked::after{transform:translateX(20px)}
+.tagForm{display:grid;gap:8px;padding:12px 18px 16px}
+.mini-btn{border:0;border-radius:999px;padding:8px 16px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:600;justify-self:start}
+.mini-btn.ghost{background:var(--fill);color:var(--fg)}
+.logItem{font-size:14px;color:var(--fg2);padding:10px 18px;line-height:1.4}
+.logItem+.logItem{border-top:.5px solid var(--sep)}
+
+/* 底部彈出卡／全頁 */
+.sheet{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);animation:up .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.sheetBar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.glassBtn{width:44px;height:44px;border-radius:50%;border:0;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 0 0 .5px var(--glass-line),0 2px 8px rgba(0,0,0,.06);font-size:22px;line-height:1;color:var(--fg)}
+.sheetBar .t{font-size:17px;font-weight:600}
+.sheetBar .s{font-size:13px;color:var(--fg2);min-width:44px;text-align:right}
+.sheetBody{flex:1;overflow-y:auto;padding:8px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.sheetBody h2{font-size:28px;font-weight:700;margin:12px 0 6px;line-height:1.2}
+.sheetBody .lede{color:var(--fg2);margin:0 0 16px;font-size:16px;line-height:1.45}
+.quote{background:var(--card);border-radius:20px;padding:14px 16px;font-size:16px;line-height:1.5}
+.quote .k{font-size:13px;color:var(--fg2);display:block;margin-bottom:4px}
+.weekRow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;background:var(--card);border-radius:20px;padding:12px 8px}
+.weekRow div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--fg2)}
+.weekRow svg{width:100%;max-width:40px;aspect-ratio:1}
+.radio{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stack{display:grid;gap:12px}
+
+.ob{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;justify-content:center;
+  padding-block:max(24px,env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-bottom,0px));padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.ob .obArt{width:120px;height:120px;margin:0 auto 24px}
+.ob h1{font-size:34px;font-weight:700;margin:0 0 10px;text-align:center}
+.ob p{color:var(--fg2);font-size:17px;line-height:1.5;margin:0 0 12px;text-align:center;text-wrap:balance}
+.ob .obStep{font-size:13px;color:var(--fg2);text-align:center;margin-top:18px}
+.ob .chips{justify-content:center}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* 0.2 新增：捕捉卡、籽、候選、AI 對話 */
+.capture{margin-top:18px;padding:14px}
+.capture textarea{min-height:84px}
+.capRow{display:flex;align-items:center;gap:10px;margin-top:10px}
+.capRow .where{flex:1;font-size:13px;color:var(--fg2)}
+.micBtn{width:44px;height:44px;border-radius:50%;border:0;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none}
+.micBtn svg{width:20px;height:20px}
+.micBtn.on{background:var(--danger);color:#fff}
+.sendBtn{border:0;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:16px;padding:11px 20px;min-height:44px}
+.sendBtn:disabled{background:var(--fill2);color:var(--fg3)}
+.hero.small{margin-top:14px;padding:18px 18px 16px;gap:10px}
+.hero.small .heroOrange{width:112px;height:112px}
+.frags{margin-top:10px}
+.frags summary{list-style:none;cursor:pointer;color:var(--fg2);font-size:15px;text-align:center;padding:6px}
+.frags summary::-webkit-details-marker{display:none}
+.fragItem{display:flex;gap:10px;padding:10px 18px;font-size:15px;line-height:1.45}
+.fragItem+.fragItem{border-top:.5px solid var(--sep)}
+.fragItem time{color:var(--fg2);font-variant-numeric:tabular-nums;flex:none;font-size:13px;padding-top:2px}
+.secondary{display:block;width:100%;margin-top:14px;min-height:50px;border:0;border-radius:999px;background:var(--fill);color:var(--fg);font-size:17px;font-weight:600}
+.segFrags{font-size:14px;color:var(--fg2);margin:0 0 10px;line-height:1.5}
+.cand{background:var(--card);border-radius:22px;padding:16px;display:grid;gap:10px}
+.cand h4{margin:0;font-size:17px;font-weight:600;line-height:1.35}
+.cand .tagAI{font-size:12px;color:var(--fg2);border:1px solid var(--sep);border-radius:999px;padding:2px 8px;justify-self:start}
+.cand .pred{font-size:15px;line-height:1.45}
+.cand .q{font-size:15px;color:var(--fg2);line-height:1.45}
+.four{display:grid;grid-template-columns:auto 1fr 1fr;gap:1px;background:var(--sep);border-radius:12px;overflow:hidden;font-size:13px;font-variant-numeric:tabular-nums}
+.four div{background:var(--card);padding:8px 10px}
+.four .h{color:var(--fg2)}
+.four b{font-size:17px;font-weight:600}
+.ratio{font-size:14px;color:var(--fg2);line-height:1.5}
+.btnRow{display:flex;gap:8px;flex-wrap:wrap}
+.status{font-size:12px;border-radius:999px;padding:3px 9px;background:var(--fill);color:var(--fg2);flex:none}
+.status.pass{background:var(--accent);color:var(--on-accent)}
+.chat{display:grid;gap:8px;margin-top:4px}
+.bub{max-width:88%;padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.5;white-space:pre-wrap}
+.bub.me{justify-self:end;background:var(--accent);color:var(--on-accent);border-bottom-right-radius:6px}
+.bub.ai{justify-self:start;background:var(--card);border-bottom-left-radius:6px}
+.chatIn{display:flex;gap:8px;align-items:flex-end}
+.chatIn textarea{flex:1;min-height:48px;font-size:16px;padding:12px 14px}
+.err{color:var(--danger);font-size:14px;line-height:1.45;margin:0}
+.know{padding:6px 0}
+.know .row small{white-space:normal}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--fill2);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+
+</head><body><div id="app">
+  <nav id="dots" aria-label="頁面">
+    <button type="button" data-i="0" aria-label="籃子"></button>
+    <button type="button" data-i="1" aria-label="剝今天"></button>
+    <button type="button" data-i="2" aria-label="設定"></button>
+  </nav>
+  <div id="pager">
+    <section class="page" id="pMore" aria-label="籃子"></section>
+    <section class="page" id="pMain" aria-label="剝今天">
+      <canvas id="pile" aria-hidden="true"></canvas>
+      <div id="mainScroll"></div>
+    </section>
+    <section class="page" id="pSet" aria-label="設定"></section>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const SEG=['上午','下午','晚上'];
+const RATES=['順','普通','卡'];
+const KEY='suanshu-v1';
+const WD=['日','一','二','三','四','五','六'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+
+/* ---------- 資料 ---------- */
+function blank(){return{v:2,created:null,onboarded:false,demo:false,days:{},frags:{},reviews:{},cands:[],
+  settings:{anchor:'刷完牙',remind:'22:30',reviewDay:6,tags:[],restart:'斷了不補，今晚剝一顆就算回來。',sound:true},
+  ai:{key:'',model:'claude-sonnet-5-5',early:false},log:[],lastLine:-1}}
+function merge(o){const b=blank();return Object.assign(b,o,{settings:Object.assign(b.settings,o.settings||{}),ai:Object.assign(b.ai,o.ai||{}),frags:o.frags||{},cands:o.cands||[]})}
+function load(){try{const t=localStorage.getItem(KEY);if(t)return merge(JSON.parse(t))}catch(e){}return blank()}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function ymd(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+function dk(d){return ymd(new Date((d||new Date()).getTime()-4*3600e3))}
+function parse(k){const a=k.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])}
+function addDays(k,n){const d=parse(k);d.setDate(d.getDate()+n);return ymd(d)}
+function diffDays(a,b){return Math.round((parse(a)-parse(b))/864e5)}
+function segNow(d){const h=(d||new Date()).getHours();return h>=4&&h<12?0:h>=12&&h<18?1:2}
+function hm(ts){const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function logChange(what){S.log.unshift({d:dk(),what});S.log=S.log.slice(0,60)}
+function peeledKeys(){return Object.keys(S.days).filter(k=>!S.days[k].skip).sort()}
+function monthCount(y,m){const p=y+'-'+String(m+1).padStart(2,'0');return peeledKeys().filter(k=>k.startsWith(p)).length}
+function dayN(){if(!S.created)return 1;return diffDays(dk(),S.created)+1}
+function fragsOf(k){return S.frags[k]||[]}
+function seedCount(k){const c=[0,0,0];fragsOf(k).forEach(f=>c[f.seg]++);return c}
+function aiOpen(){return dayN()>21||S.ai.early||S.demo}
+
+/* ---------- 聲音 ---------- */
+let AC=null;
+function ac(){if(!S.settings.sound)return null;try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
+function tone(f0,f1,dur,vol,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime;
+  o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+0.02)}
+const sTick=()=>tone(900,620,0.07,0.05,'triangle');
+const sSeed=()=>tone(1300,1700,0.09,0.04,'sine');
+const sThud=v=>tone(170,62,0.16,Math.min(0.16,0.04+v*0.02));
+const sDone=()=>{tone(520,780,0.18,0.06,'sine');setTimeout(()=>tone(780,1040,0.2,0.05,'sine'),110)};
+
+/* ---------- 蒜頭圖 ---------- */
+const CLOVE='M50 13 C61 25 73 45 71 65 C69 84 31 84 29 65 C27 45 39 25 50 13 Z';
+const CROT=[-13,0,13],CTX=[-15,0,15],CTY=[2,0,2],ORDER=[0,2,1],RX=[35,50,65];
+function rateVar(r){return r==='順'?'var(--seg-good)':r==='普通'?'var(--seg-mid)':r==='卡'?'var(--seg-bad)':'var(--seg-empty)'}
+function rootsSVG(seeds){let s='';if(!seeds)return s;
+  for(let i=0;i<3;i++){const n=Math.min(seeds[i]||0,5);for(let j=0;j<n;j++){const x=RX[i]+(j-(n-1)/2)*3.4;const dx=(j-(n-1)/2)*1.8;
+    s+='<path d="M'+x.toFixed(1)+' 85 q'+(j%2?2:-2)+' 5 '+dx.toFixed(1)+' 11" stroke="var(--root)" stroke-width="1.7" stroke-linecap="round" fill="none"/>'}}
+  return s}
+function orangeSVG(rates,opt){opt=opt||{};let s='<svg viewBox="0 0 100 100" role="img" aria-label="'+esc(opt.label||'蒜頭')+'">';
+  s+=rootsSVG(opt.seeds);
+  if(opt.leaf)s+='<path d="M46 20 C47 12 49 7 50 2 C51 7 53 12 54 20 Z" fill="var(--skin)" stroke="var(--edge)" stroke-width="1.5" stroke-linejoin="round"/>';
+  s+='<ellipse cx="50" cy="84" rx="22" ry="5" fill="var(--skin)"/>';
+  ORDER.forEach(i=>{const r=rates&&rates[i];const act=opt.active===i;
+    s+='<path d="'+CLOVE+'" transform="translate('+CTX[i]+' '+CTY[i]+') rotate('+CROT[i]+' 50 82)" fill="'+rateVar(r)+'" stroke="'+(act?'var(--fg)':'var(--edge)')+'" stroke-width="'+(act?3:2)+'" stroke-linejoin="round"/>'});
+  s+='<ellipse cx="45" cy="44" rx="2.6" ry="9" fill="#fff" opacity=".35"/>';
+  return s+'</svg>'}
+function leafSVG(){return '<svg viewBox="0 0 100 100" role="img" aria-label="今天不剝"><path d="M20 78 C18 40 46 16 84 16 C86 52 62 80 24 82 Z" fill="var(--leaf)"/><path d="M24 80 C40 60 56 42 78 22" stroke="var(--card)" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'}
+function emptySVG(){return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--sep)" stroke-width="3" stroke-dasharray="4 7"/></svg>'}
+function ratesOf(day){return day&&day.s?day.s.map(x=>x&&x.r):[null,null,null]}
+
+/* ---------- 完成語 ---------- */
+const LINES={
+  any:['今天收好了。','三瓣都收進籃子了。','好，今天就這樣。','收進去了，去睡吧。','今天這顆，放好了。','記下來了，明天見。','又一顆。','今天剝完了。','這顆是今天的。','籃子裡多一顆。','收工。','好，關燈吧。','今晚的版本，存好了。','今天的三瓣，都在這。','剝好了。','這顆跟昨天的不一樣。'],
+  allBad:['三瓣都卡的一天，記下來就夠了。','卡的一天也是一顆。'],
+  allGood:['三瓣都順，記著。','整天都順的一天。'],
+  someBad:['有一瓣卡住，記下來就好。','卡在哪一瓣，籃子會記得。'],
+  first:['第一顆。'],back:['回來了，從這顆開始。']};
+function pickLine(rates,isFirst,isBack){let pool;
+  if(isFirst)pool=LINES.first;else if(isBack)pool=LINES.back;
+  else if(rates.every(r=>r==='卡'))pool=LINES.allBad;else if(rates.every(r=>r==='順'))pool=LINES.allGood;
+  else if(rates.includes('卡')&&Math.random()<.4)pool=LINES.someBad;else pool=LINES.any;
+  let i=Math.floor(Math.random()*pool.length);if(pool===LINES.any&&pool.length>1&&i===S.lastLine)i=(i+1)%pool.length;
+  if(pool===LINES.any)S.lastLine=i;return pool[i]}
+
+/* ---------- 盤子物理 ---------- */
+const P={cv:$('#pile'),ctx:null,w:0,h:0,dpr:1,balls:[],g:{x:0,y:1},tilt:false,raf:0,cols:{}};
+P.ctx=P.cv.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function readCols(){const cs=getComputedStyle(document.documentElement);['seg-good','seg-mid','seg-bad','seg-empty','rind','pith','leaf','seed','edge','skin','root'].forEach(k=>P.cols[k]=cs.getPropertyValue('--'+k).trim())}
+function sizePile(){const r=$('#pMain').getBoundingClientRect();P.dpr=Math.min(2,window.devicePixelRatio||1);
+  P.w=r.width;P.h=r.height;P.cv.width=Math.round(P.w*P.dpr);P.cv.height=Math.round(P.h*P.dpr);P.ctx.setTransform(P.dpr,0,0,P.dpr,0,0)}
+function ballR(n){return Math.max(14,Math.min(23,Math.sqrt(P.w*170*0.62/(Math.max(n,1)*Math.PI))))}
+function buildPile(){const t=dk();const pre=t.slice(0,8);
+  const keys=Object.keys(S.days).filter(k=>k.startsWith(pre)).sort();
+  const r=ballR(keys.length);P.balls=[];
+  keys.forEach((k,i)=>{const d=S.days[k];const span=Math.max(P.w-2*r,1);const x=r+((i*2.3*r)%span);const y=P.h-r-Math.floor(i*2.3*r/span)*1.9*r;
+    P.balls.push({x,y,px:x,py:y,r:d.skip?r*.8:r,rates:ratesOf(d),seeds:seedCount(k),skip:!!d.skip,rot:Math.random()*6.28,fresh:false,key:k})});
+  for(let i=0;i<240;i++)stepPile(true);draw()}
+function stepPile(silent){const G=0.55,b=P.balls,n=b.length;
+  for(const o of b){const vx=(o.x-o.px)*0.985,vy=(o.y-o.py)*0.985;o.px=o.x;o.py=o.y;o.x+=vx+P.g.x*G;o.y+=vy+P.g.y*G;o.rot+=vx/o.r*0.6}
+  for(let it=0;it<4;it++){
+    for(let i=0;i<n;i++){const a=b[i];
+      if(a.y>P.h-a.r){if(a.fresh&&!silent){const v=a.y-a.py;if(v>2)sThud(v);a.fresh=false}a.y=P.h-a.r}
+      if(a.x<a.r)a.x=a.r;if(a.x>P.w-a.r)a.x=P.w-a.r;
+      if(P.tilt&&a.y<a.r)a.y=a.r;
+      for(let j=i+1;j<n;j++){const c=b[j];const dx=c.x-a.x,dy=c.y-a.y,d=Math.hypot(dx,dy),m=a.r+c.r;
+        if(d<m&&d>0.001){const k=(m-d)/d*0.5;a.x-=dx*k;a.y-=dy*k;c.x+=dx*k;c.y+=dy*k;
+          if(!silent&&(a.fresh||c.fresh)){const f=a.fresh?a:c;const v=f.y-f.py;if(v>2)sThud(v*.8);f.fresh=false}}}}}}
+const CLP=(typeof Path2D!=='undefined')?new Path2D(CLOVE):null;
+function drawOrange(c,o){const r=o.r;c.save();c.translate(o.x,o.y);c.rotate(o.rot);
+  if(o.skip){c.fillStyle=P.cols.leaf;c.beginPath();c.moveTo(-r*.7,r*.6);c.bezierCurveTo(-r*.8,-r*.4,0,-r,r*.8,-r*.75);c.bezierCurveTo(r*.85,r*.1,r*.2,r*.8,-r*.7,r*.6);c.fill();c.restore();return}
+  const k=r/46;c.scale(k,k);c.translate(-50,-55);
+  if(o.seeds){c.strokeStyle=P.cols.root;c.lineWidth=1.7;c.lineCap='round';
+    for(let i=0;i<3;i++){const n=Math.min(o.seeds[i],5);for(let j=0;j<n;j++){const x=RX[i]+(j-(n-1)/2)*3.4;c.beginPath();c.moveTo(x,85);c.quadraticCurveTo(x+(j%2?2:-2),90,x+(j-(n-1)/2)*1.8,96);c.stroke()}}}
+  c.fillStyle=P.cols.skin;c.beginPath();c.ellipse(50,84,22,5,0,0,7);c.fill();
+  for(const i of ORDER){const rt=o.rates[i];c.save();c.translate(CTX[i],CTY[i]);c.translate(50,82);c.rotate(CROT[i]*Math.PI/180);c.translate(-50,-82);
+    c.fillStyle=rt==='順'?P.cols['seg-good']:rt==='普通'?P.cols['seg-mid']:rt==='卡'?P.cols['seg-bad']:P.cols['seg-empty'];
+    if(CLP){c.fill(CLP);c.lineWidth=2;c.lineJoin='round';c.strokeStyle=P.cols.edge;c.stroke(CLP)}else{c.beginPath();c.ellipse(50,52,15,30,0,0,7);c.fill()}
+    c.restore()}
+  c.restore()}
+function draw(){const c=P.ctx;c.clearRect(0,0,P.w,P.h);for(const o of P.balls)drawOrange(c,o)}
+function loop(){if(document.hidden){P.raf=0;return}stepPile(false);draw();P.raf=requestAnimationFrame(loop)}
+function startLoop(){if(reduce){draw();return}if(!P.raf)P.raf=requestAnimationFrame(loop)}
+function dropFrom(el,key){const d=S.days[key];const pr=$('#pMain').getBoundingClientRect();let x=P.w/2,y=-30;
+  if(el){const r=el.getBoundingClientRect();x=r.left+r.width/2-pr.left;y=r.top+r.height/2-pr.top}
+  const n=P.balls.filter(b=>b.key!==key).length+1;const R=ballR(n);P.balls.forEach(b=>{b.r=b.skip?R*.8:R});
+  const o={x,y,px:x+(Math.random()-.5)*2,py:y+2,r:d.skip?R*.8:R,rates:ratesOf(d),seeds:seedCount(key),skip:!!d.skip,rot:0,fresh:true,key};
+  P.balls=P.balls.filter(b=>b.key!==key);P.balls.push(o);
+  if(reduce){for(let i=0;i<240;i++)stepPile(true);draw()}}
+function onTilt(e){if(e.gamma==null)return;P.tilt=true;const gx=Math.max(-1,Math.min(1,e.gamma/40)),gy=Math.max(-1,Math.min(1,(e.beta||0)/40));
+  P.g.x=gx;P.g.y=Math.abs(gy)<0.12&&Math.abs(gx)<0.12?0.12:gy}
+function askTilt(){try{if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(s=>{if(s==='granted')addEventListener('deviceorientation',onTilt)}).catch(()=>{})}
+  else if(window.DeviceOrientationEvent){addEventListener('deviceorientation',onTilt)}}catch(e){}}
+let tiltAsked=false;
+function maybeTilt(){if(!tiltAsked){tiltAsked=true;askTilt()}}
+$('#pMain').addEventListener('pointerdown',e=>{if(e.target.closest('button,textarea,input,select,a,label,summary,details'))return;
+  const pr=$('#pMain').getBoundingClientRect();const x=e.clientX-pr.left,y=e.clientY-pr.top;
+  for(const o of P.balls){if(Math.hypot(o.x-x,o.y-y)<o.r+6){o.py=o.y+10+Math.random()*4;o.px=o.x+(Math.random()-.5)*6;sTick();startLoop();break}}});
+
+/* ---------- 頁面切換 ---------- */
+const pager=$('#pager');
+function goPage(i,smooth){pager.scrollTo({left:i*pager.clientWidth,behavior:smooth?'smooth':'auto'})}
+function curPage(){return Math.round(pager.scrollLeft/Math.max(1,pager.clientWidth))}
+function syncDots(){const i=curPage();document.querySelectorAll('#dots button').forEach(b=>b.setAttribute('aria-current',String(+b.dataset.i===i)))}
+pager.addEventListener('scroll',syncDots,{passive:true});
+document.querySelectorAll('#dots button').forEach(b=>b.addEventListener('click',()=>goPage(+b.dataset.i,true)));
+function lock(on){pager.classList.toggle('locked',on);$('#dots').classList.toggle('hide',on);$('#pile').classList.toggle('dim',on)}
+
+/* ---------- 語音輸入 ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,recOn=false;
+function toggleMic(ta,btn){if(!SR)return;
+  if(recOn&&rec){rec.stop();return}
+  try{rec=new SR();rec.lang='zh-TW';rec.interimResults=true;rec.continuous=false;
+    const base=ta.value?ta.value.replace(/\s+$/,'')+' ':'';
+    rec.onresult=e=>{let t='';for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;ta.value=base+t;ta.dispatchEvent(new Event('input'))};
+    rec.onend=()=>{recOn=false;btn.classList.remove('on');btn.setAttribute('aria-pressed','false')};
+    rec.onerror=()=>{recOn=false;btn.classList.remove('on');toast('收音沒成功，可以改用鍵盤上的麥克風')};
+    rec.start();recOn=true;btn.classList.add('on');btn.setAttribute('aria-pressed','true')}catch(e){toast('收音沒成功，可以改用鍵盤上的麥克風')}}
+
+/* ---------- 主畫面 ---------- */
+let peel=null;
+function isBack(){const t=dk();const ks=peeledKeys().filter(k=>k<t);if(!ks.length)return false;return diffDays(t,ks[ks.length-1])>=3}
+function reviewDue(){const t=dk();return parse(t).getDay()===+S.settings.reviewDay&&!(S.reviews[t]&&S.reviews[t].done)}
+function captureHTML(){const sg=SEG[segNow()];
+  return '<div class="card capture"><label for="frag" hidden>現在發生什麼</label><textarea class="say" id="frag" rows="3" placeholder="現在在做什麼？說一句就好"></textarea>'
+   +'<div class="capRow">'+(SR?'<button type="button" class="micBtn" id="micBtn" aria-label="用說的" aria-pressed="false">'+MIC+'</button>':'')
+   +'<span class="where">會記在今天「'+sg+'」那一瓣'+(SR?'':'，按鍵盤上的麥克風就能用說的')+'</span><button type="button" class="sendBtn" id="sendFrag" disabled>記下</button></div></div>'}
+function fragListHTML(k){const fs=fragsOf(k);if(!fs.length)return '';
+  return '<details class="frags"><summary>今天說了 '+fs.length+' 句 ›</summary><div class="list">'+fs.map(f=>'<div class="fragItem"><time>'+hm(f.ts)+'</time><span>'+esc(f.t)+'</span></div>').join('')+'</div></details>'}
+function renderMain(){
+  const t=dk(),d=parse(t),day=S.days[t];
+  const m=d.getMonth(),y=d.getFullYear();
+  let sub='這個月記了 '+monthCount(y,m)+' 天';
+  if(!day&&isBack())sub='從今晚這顆開始。';
+  let h='<header class="head"><h1>'+(m+1)+'月'+d.getDate()+'日 週'+WD[d.getDay()]+'</h1><p>'+esc(sub)+'</p></header>';
+  const seeds=seedCount(t);
+  if(peel){h+=peelHTML()}
+  else if(day&&day.skip){
+    h+=captureHTML()+'<div class="card hero small"><div class="heroOrange">'+leafSVG()+'</div><p class="doneLine">今天不剝。</p><p class="hint">不進統計，也不算斷掉。</p></div>'
+      +fragListHTML(t)+'<button class="textlink" id="unskip" type="button">還是剝一下</button>';
+  }
+  else if(day){
+    h+=captureHTML()+'<div class="card hero small"><div class="heroOrange" id="heroOrange">'+orangeSVG(ratesOf(day),{label:'今天的蒜',leaf:true,seeds})+'</div><p class="doneLine">'+esc(day.line||'今天收好了。')+'</p></div>';
+    h+='<div class="list today">'+day.s.map((x,i)=>'<div class="row"><span class="dot" style="background:'+rateVar(x.r)+'"></span><span class="lab">'+SEG[i]+'<small>'+(x.t?esc(x.t):'—')+(x.tags&&x.tags.length?' · '+esc(x.tags.join('、')):'')+'</small></span><span class="val">'+x.r+'</span></div>').join('')+'</div>';
+    h+=fragListHTML(t);
+    if(reviewDue())h+='<div class="ctx"><button class="pill" id="goReview" type="button">今天是對帳日 ›</button></div>';
+    h+='<button class="textlink" id="editToday" type="button">改一下</button>';
+  }
+  else{
+    const hr=new Date().getHours();const night=hr>=18||hr<4;
+    const n=seeds[0]+seeds[1]+seeds[2];
+    h+=captureHTML()+'<div class="card hero small"><div class="heroOrange" id="heroOrange">'+orangeSVG([null,null,null],{label:'還沒剝的蒜',leaf:true,seeds})+'</div><p class="hint">'+(n?'今天記了 '+n+' 句。':'')+'在'+esc(S.settings.anchor)+'之後，剝今天</p></div>'
+      +fragListHTML(t)
+      +(night?'<button class="primary" id="startBtn" type="button">剝今天</button>':'<button class="secondary" id="startBtn" type="button">剝今天</button><p class="note">晚上那瓣還沒發生，睡前再剝比較準。</p>')
+      +'<button class="textlink" id="skipBtn" type="button">今天不想剝</button>';
+  }
+  $('#mainScroll').innerHTML=h;bindMain();
+}
+function peelHTML(){const i=peel.i,cur=peel.s[i]||{};
+  const tags=S.settings.tags;const fs=fragsOf(dk()).filter(f=>f.seg===i);
+  return '<div class="card peel"><div class="peelTop"><div class="mini">'+orangeSVG(peel.s.map(x=>x&&x.r),{active:i,seeds:seedCount(dk())})+'</div><div><div class="segName">'+SEG[i]+'</div><div class="segStep">'+(i+1)+' / 3　順不順？</div></div></div>'
+   +(fs.length?'<p class="segFrags">這段白天說過 '+fs.length+' 句。</p>':'')
+   +'<label for="say" hidden>'+SEG[i]+'發生了什麼</label><textarea class="say" id="say" rows="3" placeholder="補一句那段發生了什麼？（可以不寫）">'+esc(cur.t||'')+'</textarea>'
+   +(tags.length?'<div class="chips">'+tags.map(tg=>'<button type="button" class="chip" data-tag="'+esc(tg.name)+'" aria-pressed="'+((cur.tags||[]).includes(tg.name))+'">'+esc(tg.name)+'</button>').join('')+'</div>':'')
+   +'</div><div class="choices">'
+   +'<button type="button" class="choice c-good" data-r="順"><i></i>順</button><button type="button" class="choice c-mid" data-r="普通"><i></i>普通</button><button type="button" class="choice c-bad" data-r="卡"><i></i>卡</button></div>'
+   +'<div class="peelNav">'+(i>0?'<button class="textlink" id="prevSeg" type="button">‹ 上一段</button>':'<span></span>')+'<button class="textlink" id="cancelPeel" type="button">先不剝</button></div>'}
+function bindMain(){
+  const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn)};
+  on('frag','input',e=>{$('#sendFrag').disabled=!e.target.value.trim()});
+  on('micBtn','click',()=>{maybeTilt();toggleMic($('#frag'),$('#micBtn'))});
+  on('sendFrag','click',()=>{const ta=$('#frag');const v=ta.value.trim();if(!v)return;maybeTilt();ac();
+    const t=dk();(S.frags[t]=S.frags[t]||[]).push({t:v,ts:Date.now(),seg:segNow()});if(!S.created)S.created=t;save();sSeed();
+    renderMain();const b=P.balls.find(x=>x.key===t);if(b){b.seeds=seedCount(t);draw()}toast('記下了，落在「'+SEG[segNow()]+'」')});
+  on('startBtn','click',()=>{maybeTilt();ac();startPeel()});
+  on('skipBtn','click',()=>{const t=dk();S.days[t]={skip:true,at:Date.now()};if(!S.created)S.created=t;save();renderMain();dropFrom(document.querySelector('.heroOrange'),t);startLoop();renderMore()});
+  on('unskip','click',()=>{delete S.days[dk()];P.balls=P.balls.filter(b=>b.key!==dk());save();startPeel()});
+  on('editToday','click',()=>startPeel(S.days[dk()]));
+  on('goReview','click',openReview);
+  on('cancelPeel','click',()=>{peel=null;lock(false);renderMain()});
+  on('prevSeg','click',()=>{keepSay();peel.i--;renderMain()});
+  document.querySelectorAll('.chip[data-tag]').forEach(b=>b.addEventListener('click',()=>{const cur=peel.s[peel.i]||(peel.s[peel.i]={});cur.tags=cur.tags||[];
+    const n=b.dataset.tag;const k=cur.tags.indexOf(n);if(k<0)cur.tags.push(n);else cur.tags.splice(k,1);b.setAttribute('aria-pressed',String(k<0))}));
+  document.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.r)));
+}
+function keepSay(){const el=$('#say');if(!el||!peel)return;const cur=peel.s[peel.i]||(peel.s[peel.i]={});cur.t=el.value.trim()}
+function startPeel(existing){peel={i:0,s:existing&&existing.s?existing.s.map(x=>Object.assign({},x)):[null,null,null],edit:!!existing};lock(true);goPage(1,true);renderMain();$('#mainScroll').scrollTop=0}
+function choose(r){keepSay();const cur=peel.s[peel.i]||(peel.s[peel.i]={});cur.r=r;cur.tags=cur.tags||[];cur.t=cur.t||'';sTick();
+  if(peel.i<2){peel.i++;renderMain();return}
+  const t=dk();const first=peeledKeys().length===0;const back=isBack();
+  const rates=peel.s.map(x=>x.r);const prev=S.days[t];
+  S.days[t]={s:peel.s.map(x=>({r:x.r,t:x.t||'',tags:x.tags||[]})),at:Date.now(),line:(peel.edit&&prev&&prev.line)?prev.line:pickLine(rates,first,back)};
+  if(!S.created)S.created=t;save();peel=null;lock(false);renderMain();renderMore();
+  const ho=$('#heroOrange');if(ho)ho.classList.add('pop');
+  const dl=document.querySelector('.doneLine');if(dl)dl.classList.add('fade');
+  sDone();setTimeout(()=>{dropFrom($('#heroOrange'),t);startLoop()},reduce?0:520)}
+
+/* ---------- 四格（程式算，不交給 AI） ---------- */
+function units(from,to){const out=[];Object.keys(S.days).sort().forEach(k=>{if(k<from||k>to)return;const d=S.days[k];if(d.skip||!d.s)return;
+  const fs=fragsOf(k);for(let i=0;i<3;i++){const seg=d.s[i];const text=fs.filter(f=>f.seg===i).map(f=>f.t).join(' ')+' '+(seg.t||'');
+    out.push({k,i,r:seg.r,text,tags:seg.tags||[]})}});return out}
+function hasA(u,kw){return kw.some(w=>w&&(u.text.includes(w)||u.tags.includes(w)))}
+function four(kw,outcome,from,to){const c={ab:0,anb:0,nab:0,nanb:0};units(from,to).forEach(u=>{const a=hasA(u,kw),b=u.r===outcome;
+  if(a&&b)c.ab++;else if(a)c.anb++;else if(b)c.nab++;else c.nanb++});return c}
+function fourHTML(c,kw,outcome){const aN=c.ab+c.anb,nN=c.nab+c.nanb;
+  const pa=aN?Math.round(c.ab/aN*100):0,pn=nN?Math.round(c.nab/nN*100):0;
+  return '<div class="four"><div class="h"></div><div class="h">'+esc(outcome)+'</div><div class="h">不是'+esc(outcome)+'</div>'
+   +'<div class="h">有「'+esc(kw.join('／'))+'」</div><div><b>'+c.ab+'</b></div><div><b>'+c.anb+'</b></div>'
+   +'<div class="h">沒有</div><div><b>'+c.nab+'</b></div><div><b>'+c.nanb+'</b></div></div>'
+   +'<p class="ratio">有的時段 '+c.ab+'/'+aN+'（'+pa+'%）是「'+esc(outcome)+'」；沒有的時段 '+c.nab+'/'+nN+'（'+pn+'%）。'+(aN<4?'有的時段太少，還不能判斷。':'')+'</p>'}
+
+/* ---------- 盤子頁 ---------- */
+let viewMonth=null;
+function renderMore(){
+  const t=dk(),td=parse(t);if(!viewMonth)viewMonth={y:td.getFullYear(),m:td.getMonth()};
+  const {y,m}=viewMonth;const first=new Date(y,m,1),days=new Date(y,m+1,0).getDate();
+  const isCur=y===td.getFullYear()&&m===td.getMonth();
+  let h='<header class="head"><h1>籃子</h1><p>'+(isCur?'這個月':(m+1)+' 月')+'記了 '+monthCount(y,m)+' 天</p></header>';
+  if(S.demo)h+='<div class="banner"><span>正在看示範資料</span><button type="button" id="clearDemo">清除示範</button></div>';
+  h+='<div class="card month"><div class="mHead"><button type="button" id="mPrev" aria-label="上個月">‹</button><b>'+y+' 年 '+(m+1)+' 月</b><button type="button" id="mNext" aria-label="下個月"'+(isCur?' disabled':'')+'>›</button></div>';
+  h+='<div class="wk">'+WD.map(w=>'<span>'+w+'</span>').join('')+'</div><div class="cal">';
+  for(let i=0;i<first.getDay();i++)h+='<div></div>';
+  for(let dd=1;dd<=days;dd++){const k=ymd(new Date(y,m,dd));const day=S.days[k];const future=k>t;
+    h+='<div class="cell'+(k===t?' today':'')+'">'+(future?'':day?(day.skip?leafSVG():orangeSVG(ratesOf(day),{seeds:seedCount(k)})):(fragsOf(k).length?orangeSVG([null,null,null],{seeds:seedCount(k)}):emptySVG()))+'<span class="n">'+dd+'</span></div>'}
+  h+='</div></div>';
+  const pre=y+'-'+String(m+1).padStart(2,'0');const ks=peeledKeys().filter(k=>k.startsWith(pre));
+  h+='<h2 class="sec">三段的數字</h2><div class="card counts">';
+  for(let i=0;i<3;i++){const c={順:0,普通:0,卡:0};ks.forEach(k=>{c[S.days[k].s[i].r]++});const tot=ks.length||1;
+    h+='<div class="cRow"><b>'+SEG[i]+'</b><div><div class="bar">'+RATES.map(r=>'<span style="width:'+(c[r]/tot*100)+'%;background:'+rateVar(r)+'"></span>').join('')+'</div><div class="nums">'+RATES.map(r=>'<span><i style="background:'+rateVar(r)+'"></i>'+r+' '+c[r]+'</span>').join('')+'</div></div></div>'}
+  h+='</div>';
+  const n=dayN();h+='<p class="foot">'+(n<=21&&!S.demo?'第 '+n+' 天。前三週只看數字，先不找模式。':'只算有剝的日子；葉子和空格不算進來。')+'</p>';
+  // 候選清單
+  const live=S.cands.filter(c=>c.status==='觀察中'||c.status==='候選');
+  h+='<h2 class="sec">候選清單</h2>';
+  if(!live.length)h+='<p class="foot" style="margin-top:0">還沒有候選。'+(aiOpen()?'週對帳時請 AI 讀你的語音，它會提幾條。':'第三週起，週對帳會請 AI 讀你的語音提候選。')+'</p>';
+  else h+='<div class="list">'+live.map(c=>'<div class="row"><span class="lab">'+esc(c.name)+'<small>'+esc(c.pred)+'</small><small>判決日 '+esc(c.verdict)+(c.verdict<=t?'，已經到了，週對帳時判':'')+'</small></span><span class="status">觀察中</span></div>').join('')+'</div>';
+  const known=S.cands.filter(c=>c.status==='通過');
+  h+='<h2 class="sec">我知道的自己</h2>';
+  h+=known.length?'<div class="list know">'+known.map(c=>'<div class="row"><span class="lab">'+esc(c.name)+'<small>'+esc(c.pred)+'｜'+esc(c.passed||'')+' 通過</small></span><span class="status pass">通過</span></div>').join('')+'</div>'
+     :'<p class="foot" style="margin-top:0">只放預測真的成立過的條目。現在是空的，這是正常的。</p>';
+  // 對帳
+  const rk=Object.keys(S.reviews).filter(k=>S.reviews[k].done).sort().reverse();
+  h+='<h2 class="sec">週對帳</h2><div class="list"><button type="button" class="row" id="openRev"><span class="lab">'+(S.reviews[t]&&S.reviews[t].done?'這週對過了':'做這週的對帳')+'<small>對帳日：每週'+WD[S.settings.reviewDay]+'，大約二十分鐘</small></span><span class="chev">›</span></button>';
+  rk.slice(0,8).forEach(k=>{const r=S.reviews[k];const d=parse(k);h+='<button type="button" class="row" data-rev="'+k+'"><span class="lab">'+(d.getMonth()+1)+'/'+d.getDate()+' 的對帳<small>下週動作：'+esc(r.action.when)+'，'+esc(r.action.what)+'</small></span><span class="chev">›</span></button>'});
+  h+='</div><p class="foot">對帳沒有本週摘要。它只留下記憶跟紀錄差在哪、判決過的候選，和下週一個動作。</p>';
+  $('#pMore').innerHTML=h;
+  const on=(id,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener('click',fn)};
+  on('mPrev',()=>{viewMonth.m--;if(viewMonth.m<0){viewMonth.m=11;viewMonth.y--}renderMore()});
+  on('mNext',()=>{viewMonth.m++;if(viewMonth.m>11){viewMonth.m=0;viewMonth.y++}renderMore()});
+  on('openRev',openReview);on('clearDemo',clearDemo);
+  document.querySelectorAll('[data-rev]').forEach(b=>b.addEventListener('click',()=>showPastReview(b.dataset.rev)));
+}
+
+/* ---------- AI ---------- */
+const AI_RULES=`你是日記 app「蒜數」裡的對帳助手。使用者用這個 app 改進自己：白天用說的記下零碎片段，睡前把一天切成上午、下午、晚上，各點一下「順／普通／卡」。
+規則（一定要守）：
+1. 先講數字和使用者的原話，再講你的看法。計數以 app 給的數字為準，你不要自己數。
+2. 不問「為什麼」，只問看得到答案的事：當時在做什麼、前面發生什麼、跟誰。
+3. 你提的模式都是猜測，不是結論。
+4. 不解夢、不做人格或價值判斷、不替使用者下人生意義的結論、不替使用者命名情緒。
+5. 不附和、不陪著抱怨。使用者一直重複同一個煩惱時，請他把它換成一個具體問題。
+6. 對話最後收在一個下週可以做的小實驗：什麼時候、做什麼、怎樣算有效。實驗一次只改一件事。
+7. 不寫週摘要。
+用繁體中文（台灣用語），口語、簡短，每次回覆不超過 150 字。`;
+function corpus(from,to){const lines=[];Object.keys(S.days).concat(Object.keys(S.frags)).filter((k,i,a)=>a.indexOf(k)===i&&k>=from&&k<=to).sort().forEach(k=>{
+  const d=S.days[k];const wd='週'+WD[parse(k).getDay()];
+  for(let i=0;i<3;i++){const fs=fragsOf(k).filter(f=>f.seg===i).map(f=>hm(f.ts)+' '+f.t);const seg=d&&d.s?d.s[i]:null;
+    if(!fs.length&&!seg)continue;
+    lines.push(k+' '+wd+' '+SEG[i]+'｜'+(seg?seg.r:(d&&d.skip?'今天不剝':'沒剝'))+(seg&&seg.tags&&seg.tags.length?'｜標籤：'+seg.tags.join('、'):'')+(seg&&seg.t?'｜睡前補：'+seg.t:'')+(fs.length?'｜白天說：'+fs.join('；'):''))}});
+  return lines.join('\n')}
+async function callAI(messages,maxTokens){
+  if(!S.ai.key)throw new Error('nokey');
+  let res;
+  try{res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':S.ai.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:S.ai.model||'claude-sonnet-5-5',max_tokens:maxTokens||900,system:AI_RULES,messages})})}
+  catch(e){throw new Error('net')}
+  if(!res.ok){let msg='';try{const j=await res.json();msg=(j.error&&j.error.message)||''}catch(e){}throw new Error(res.status+' '+msg)}
+  const j=await res.json();return (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('')}
+function aiErr(e){const m=String(e.message||e);
+  if(m==='nokey')return '還沒設定 AI 金鑰。到設定頁「AI 對帳」貼上你的 Anthropic API 金鑰。';
+  if(m==='net')return '連不到 AI。如果你是在 Claude 的預覽頁裡打開，這裡不能連外，請用 GitHub Pages 版；不然就檢查網路再試一次。';
+  if(m.startsWith('401'))return '金鑰被拒絕了，檢查設定頁的金鑰有沒有貼完整。';
+  if(m.startsWith('404'))return '找不到這個模型名稱，到設定頁改一下模型。';
+  return 'AI 回覆失敗（'+esc(m.slice(0,120))+'），等一下再試。'}
+
+/* ---------- 週對帳 ---------- */
+let RV=null;
+function weekKeys(end){const a=[];for(let i=6;i>=0;i--)a.push(addDays(end,-i));return a}
+function prevAction(t){const ks=Object.keys(S.reviews).filter(k=>k<t&&S.reviews[k].done).sort();return ks.length?{key:ks[ks.length-1],a:S.reviews[ks[ks.length-1]].action}:null}
+function dueCands(t){return S.cands.filter(c=>c.status==='觀察中'&&c.verdict<=t)}
+function buildSteps(t){const st=['mem','rec','gap'];if(dueCands(t).length)st.push('verdict');if(aiOpen())st.push('ai');st.push('act','done');return st}
+function openReview(){const t=dk();const ex=S.reviews[t];
+  RV={t,steps:buildSteps(t),i:0,memory:ex?ex.memory:'',gap:ex?ex.gap:'',when:ex?ex.action.when:'',what:ex?ex.action.what:'',last:ex?ex.lastResult:'',
+    pa:prevAction(t),view:false,ai:ex&&ex.ai?ex.ai:{cands:[],chat:[],added:[]},busy:false,err:''};
+  if(ex&&ex.done)RV.i=RV.steps.length-1;renderReview()}
+function showPastReview(k){const r=S.reviews[k];RV={t:k,steps:['done'],i:0,memory:r.memory,gap:r.gap,when:r.action.when,what:r.action.what,last:r.lastResult,pa:null,view:true,ai:r.ai||{cands:[],chat:[],added:[]}};renderReview()}
+function closeSheet(){const s=$('#sheet');if(s)s.remove();RV=null;renderMore();renderMain()}
+function weekBlock(t){const ks=weekKeys(t);let h='<div class="weekRow">'+ks.map(k=>{const d=S.days[k];const dd=parse(k);
+    return '<div>'+(d?(d.skip?leafSVG():orangeSVG(ratesOf(d),{seeds:seedCount(k)})):emptySVG())+'<span>'+WD[dd.getDay()]+'</span></div>'}).join('')+'</div>';
+  const pk=ks.filter(k=>S.days[k]&&!S.days[k].skip);const nf=ks.reduce((a,k)=>a+fragsOf(k).length,0);
+  h+='<div class="card counts" style="margin-top:10px">';for(let i=0;i<3;i++){const c={順:0,普通:0,卡:0};pk.forEach(k=>c[S.days[k].s[i].r]++);
+    h+='<div class="cRow"><b>'+SEG[i]+'</b><div class="nums" style="margin:0">'+RATES.map(r=>'<span><i style="background:'+rateVar(r)+'"></i>'+r+' '+c[r]+'</span>').join('')+'</div></div>'}
+  return h+'</div><p class="foot">這週剝了 '+pk.length+' 天，白天說了 '+nf+' 句。</p>'}
+function stepBody(id){const t=RV.t;
+  if(id==='mem')return '<h2>先說記憶</h2><p class="lede">資料還沒打開。這週你記得是怎樣的？一兩句，越直覺越好。</p>'
+     +'<textarea class="say" id="rvMem" rows="4" placeholder="例如：這週還行，週三很爛。">'+esc(RV.memory)+'</textarea>'
+     +'<button class="primary" id="rvNext" type="button"'+(RV.memory?'':' disabled')+'>打開這週的紀錄</button>';
+  if(id==='rec'){let b='<h2>看紀錄</h2><p class="lede">過去七天，照實看就好，先不加評語。</p>'+weekBlock(t);
+     if(RV.pa)b+='<h2 style="font-size:20px;margin-top:22px">上週定的動作</h2><div class="quote"><span class="k">'+esc(RV.pa.a.when)+'</span>'+esc(RV.pa.a.what)+'</div><div class="radio">'
+       +['做到了','做了一部分','沒做'].map(x=>'<button type="button" class="chip" data-last="'+x+'" aria-pressed="'+(RV.last===x)+'">'+x+'</button>').join('')+'</div>';
+     if(!aiOpen())b+='<p class="foot" style="margin-left:4px">前三週是資料累積期：只對帳，AI 先不提候選。</p>';
+     return b+'<button class="primary" id="rvNext" type="button">下一步</button>'}
+  if(id==='gap')return '<h2>差在哪</h2><p class="lede">把剛剛的記憶和紀錄放在一起看。</p><div class="stack"><div class="quote"><span class="k">你記得的這週</span>'+esc(RV.memory)+'</div>'+weekBlock(t)+'</div>'
+     +'<textarea class="say" id="rvGap" rows="3" style="margin-top:14px" placeholder="例如：記得週三很爛，紀錄上只有下午卡。">'+esc(RV.gap)+'</textarea>'
+     +'<div class="radio"><button type="button" class="chip" id="rvSame">看不出差別</button></div>'
+     +'<button class="primary" id="rvNext" type="button">下一步</button>';
+  if(id==='verdict'){let b='<h2>判決到期的候選</h2><p class="lede">預測寫好之後就不能改。拿新的資料對照：成立就通過，沒成立就淘汰。</p><div class="stack">';
+     dueCands(t).forEach(c=>{const nw=four(c.kw,c.outcome,c.created,t);
+       b+='<div class="cand"><h4>'+esc(c.name)+'</h4><div class="pred">預測：'+esc(c.pred)+'</div><span class="k" style="font-size:13px;color:var(--fg2)">提出之後的新資料</span>'+fourHTML(nw,c.kw,c.outcome)
+        +'<div class="btnRow"><button type="button" class="mini-btn" data-vd="pass" data-id="'+c.id+'">通過</button><button type="button" class="mini-btn ghost" data-vd="fail" data-id="'+c.id+'">淘汰</button>'
+        +(c.extended?'':'<button type="button" class="mini-btn ghost" data-vd="ext" data-id="'+c.id+'">延長一次</button>')+'</div></div>'});
+     return b+'</div><button class="primary" id="rvNext" type="button">下一步</button>'}
+  if(id==='ai'){const A=RV.ai;let b='<h2>AI 讀你的語音</h2><p class="lede">AI 讀最近四週說過的話和三段評分，最多提三條「可能的模式」。四格數字由 app 自己算，AI 只負責提。</p>';
+     if(!A.cands.length){b+='<button class="primary" id="aiRun" type="button"'+(RV.busy?' disabled':'')+'>'+(RV.busy?'<span class="spin"></span>正在讀':'請 AI 讀這四週')+'</button>'
+        +'<p class="foot" style="margin-left:4px">按下去，這四週的語音文字和評分會送到 Anthropic。金鑰只存在這支手機。</p>'}
+     else{const added=S.reviews[RV.t]&&S.reviews[RV.t].ai?S.reviews[RV.t].ai.added:A.added;
+       b+='<div class="stack">'+A.cands.map((c,ix)=>{const isAdded=(A.added||[]).includes(ix);
+         return '<div class="cand"><span class="tagAI">AI 猜的</span><h4>'+esc(c.name)+'</h4>'+fourHTML(c.four,c.keywords,c.outcome)
+          +'<div class="pred">預測：'+esc(c.prediction)+'</div><div class="q">'+esc(c.question)+'</div>'
+          +'<div class="btnRow"><button type="button" class="mini-btn'+(isAdded?' ghost':'')+'" data-add="'+ix+'"'+(isAdded?' disabled':'')+'>'+(isAdded?'已加入候選':'加入候選清單')+'</button><button type="button" class="mini-btn ghost" data-talk="'+ix+'">聊這條</button></div></div>'}).join('')+'</div>';
+       if(A.chat.length||A.talk!=null){b+='<h2 style="font-size:20px;margin-top:22px">跟 AI 聊</h2><div class="chat">'+A.chat.filter(m=>!m.hidden).map(m=>'<div class="bub '+(m.role==='user'?'me':'ai')+'">'+esc(m.content)+'</div>').join('')
+         +(RV.busy?'<div class="bub ai"><span class="spin"></span>想一下</div>':'')+'</div>';
+         const turns=A.chat.filter(m=>m.role==='user'&&!m.hidden).length;
+         b+=turns<5?'<div class="chatIn" style="margin-top:10px"><textarea class="say" id="aiIn" rows="1" placeholder="回答它，或補充"></textarea><button type="button" class="sendBtn" id="aiSend"'+(RV.busy?' disabled':'')+'>送出</button></div>'
+           :'<p class="foot">聊到這裡就好。下一步把下週要做的實驗寫下來。</p>'}}
+     if(RV.err)b+='<p class="err" style="margin-top:12px">'+RV.err+'</p>';
+     return b+'<button class="secondary" id="rvNext" type="button">下一步</button>'}
+  if(id==='act')return '<h2>下週一個動作</h2><p class="lede">只定一個，一次只改一件事。寫到「什麼時候、做什麼」。</p><div class="stack">'
+     +'<input class="field" id="rvWhen" placeholder="什麼時候？例如：週二、週四下午會議後" value="'+esc(RV.when)+'">'
+     +'<input class="field" id="rvWhat" placeholder="做什麼？例如：先只打開專案檔十五分鐘" value="'+esc(RV.what)+'"></div>'
+     +'<button class="primary" id="rvDone" type="button"'+(RV.when&&RV.what?'':' disabled')+'>完成對帳</button>';
+  // done
+  return '<h2>'+(RV.view?'這次的對帳':'對帳完成')+'</h2><p class="lede">'+(RV.view?'':'下週同一天見。')+'</p><div class="stack">'
+     +'<div class="quote"><span class="k">記得的</span>'+esc(RV.memory)+'</div>'
+     +(RV.last?'<div class="quote"><span class="k">上週動作</span>'+esc(RV.last)+'</div>':'')
+     +'<div class="quote"><span class="k">差在哪</span>'+esc(RV.gap||'看不出差別')+'</div>'
+     +((RV.ai.added||[]).length?'<div class="quote"><span class="k">新加的候選</span>'+RV.ai.added.map(ix=>esc(RV.ai.cands[ix].name)).join('<br>')+'</div>':'')
+     +'<div class="quote"><span class="k">下週動作</span>'+esc(RV.when)+'，'+esc(RV.what)+'</div></div>'
+     +'<button class="primary" id="rvClose" type="button">好</button>'}
+function renderReview(){let s=$('#sheet');if(!s){s=document.createElement('div');s.id='sheet';s.className='sheet';s.setAttribute('role','dialog');s.setAttribute('aria-label','週對帳');document.body.appendChild(s)}
+  const id=RV.steps[RV.i];const last=RV.steps.length-1;const back=RV.i>0&&id!=='done';
+  const keepScroll=s.querySelector('.sheetBody')?s.querySelector('.sheetBody').scrollTop:0;
+  s.innerHTML='<div class="sheetBar"><button class="glassBtn" id="rvX" type="button" aria-label="'+(back?'上一步':'關閉')+'">'+(back?'‹':'×')+'</button><span class="t">'+(RV.view?'過去的對帳':'週對帳')+'</span><span class="s">'+(id!=='done'?(RV.i+1)+' / '+last:'')+'</span></div><div class="sheetBody">'+stepBody(id)+'</div>';
+  if(RV.keep)s.querySelector('.sheetBody').scrollTop=keepScroll;RV.keep=false;
+  const on=(i,ev,fn)=>{const el=document.getElementById(i);if(el)el.addEventListener(ev,fn)};
+  on('rvX','click',()=>{if(back){keepRv();RV.i--;renderReview()}else closeSheet()});
+  on('rvMem','input',e=>{RV.memory=e.target.value.trim();$('#rvNext').disabled=!RV.memory});
+  on('rvGap','input',e=>{RV.gap=e.target.value.trim()});
+  on('rvSame','click',()=>{RV.gap='看不出差別';$('#rvGap').value=RV.gap});
+  ['rvWhen','rvWhat'].forEach(i=>on(i,'input',()=>{RV.when=$('#rvWhen').value.trim();RV.what=$('#rvWhat').value.trim();$('#rvDone').disabled=!(RV.when&&RV.what)}));
+  document.querySelectorAll('[data-last]').forEach(b=>b.addEventListener('click',()=>{RV.last=b.dataset.last;document.querySelectorAll('[data-last]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
+  document.querySelectorAll('[data-vd]').forEach(b=>b.addEventListener('click',()=>{const c=S.cands.find(x=>x.id===b.dataset.id);if(!c)return;
+    if(b.dataset.vd==='pass'){c.status='通過';c.passed=RV.t}else if(b.dataset.vd==='fail'){c.status='淘汰'}else{c.extended=true;c.verdict=addDays(RV.t,14)}
+    save();toast(b.dataset.vd==='pass'?'通過，寫進「我知道的自己」':b.dataset.vd==='fail'?'淘汰了，這也是一個知道':'延長兩週，只能延這一次');RV.keep=true;renderReview()}));
+  on('aiRun','click',runAI);
+  document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addCand(+b.dataset.add)));
+  document.querySelectorAll('[data-talk]').forEach(b=>b.addEventListener('click',()=>talk(+b.dataset.talk)));
+  on('aiSend','click',()=>{const v=$('#aiIn').value.trim();if(v)sendChat(v)});
+  on('rvNext','click',()=>{keepRv();RV.i++;draftRv();renderReview();$('.sheetBody').scrollTop=0});
+  on('rvDone','click',()=>{keepRv();S.reviews[RV.t]={memory:RV.memory,gap:RV.gap,action:{when:RV.when,what:RV.what},lastResult:RV.last,done:true,at:Date.now(),ai:RV.ai};save();RV.i=RV.steps.length-1;sDone();renderReview()});
+  on('rvClose','click',closeSheet);
+  const sb=s.querySelector('.chat');if(sb&&RV.scrollChat){s.querySelector('.sheetBody').scrollTop=1e6;RV.scrollChat=false}
+}
+function keepRv(){const g=$('#rvGap');if(g)RV.gap=g.value.trim();const m=$('#rvMem');if(m)RV.memory=m.value.trim()}
+function draftRv(){if(RV.view)return;const ex=S.reviews[RV.t];if(ex&&ex.done)return;S.reviews[RV.t]={memory:RV.memory,gap:RV.gap,action:{when:RV.when,what:RV.what},lastResult:RV.last,done:false,ai:RV.ai};save()}
+async function runAI(){RV.busy=true;RV.err='';renderReview();
+  const to=RV.t,from=addDays(to,-27);const text=corpus(from,to);
+  const existing=S.cands.filter(c=>c.status==='觀察中').map(c=>c.name);
+  const prompt='以下是使用者最近四週的紀錄，每行是一天的一段。\n\n'+(text||'（沒有紀錄）')+'\n\n'
+    +(existing.length?'已經在觀察的候選（不要重複）：'+existing.join('；')+'\n\n':'')
+    +'請提出最多三條「可能的模式」，每條都要能用「某個情況出現時，那段比較容易是某個評分」來檢驗。\n'
+    +'只輸出 JSON，不要其他文字，格式：{"candidates":[{"name":"一句話的候選，例如：下午有會議的時段比較容易卡","keywords":["會議","開會"],"outcome":"卡","prediction":"接下來兩週，……（會被新資料推翻的一句預測）","question":"一個看得到答案的問題，不能是為什麼"}]}\n'
+    +'keywords 必須是紀錄裡真的出現過的字詞（2 到 4 個），outcome 只能是「順」「普通」「卡」其中一個。資料太少就少提，甚至可以是空陣列。';
+  try{const out=await callAI([{role:'user',content:prompt}],1200);
+    const m=out.match(/\{[\s\S]*\}/);if(!m)throw new Error('格式不對');const j=JSON.parse(m[0]);
+    RV.ai.cands=(j.candidates||[]).slice(0,3).filter(c=>c&&c.name&&Array.isArray(c.keywords)&&RATES.includes(c.outcome)).map(c=>Object.assign(c,{four:four(c.keywords,c.outcome,from,to)}));
+    RV.ai.context=text;RV.ai.added=[];RV.ai.chat=[];
+    if(!RV.ai.cands.length)RV.err='這四週的資料，AI 沒找到能檢驗的候選。資料多一點再試，這很正常。';
+  }catch(e){RV.err=aiErr(e)}
+  RV.busy=false;draftRv();renderReview()}
+function addCand(ix){const c=RV.ai.cands[ix];const thisWeek=S.cands.filter(x=>x.created===RV.t).length;
+  if(thisWeek>=3){toast('一週最多加三條候選');return}
+  S.cands.push({id:'c'+Date.now(),name:c.name,kw:c.keywords,outcome:c.outcome,pred:c.prediction,created:RV.t,verdict:addDays(RV.t,14),status:'觀察中',extended:false,base:c.four});
+  RV.ai.added=(RV.ai.added||[]).concat(ix);save();draftRv();RV.keep=true;renderReview();toast('加入候選，兩週後判決')}
+function talk(ix){const c=RV.ai.cands[ix];RV.ai.talk=ix;
+  const ctx='這是使用者最近四週的紀錄：\n'+(RV.ai.context||'')+'\n\n我們要聊的候選：'+c.name+'\napp 算出的四格：有「'+c.keywords.join('／')+'」的時段 '+c.four.ab+' 段是「'+c.outcome+'」、'+c.four.anb+' 段不是；沒有的時段 '+c.four.nab+' 段是、'+c.four.nanb+' 段不是。\n預測：'+c.prediction+'\n\n請先用一兩句講數字和他的原話，再問一個看得到答案的問題。';
+  RV.ai.chat=[{role:'user',content:ctx,hidden:true}];sendChat(null)}
+async function sendChat(v){if(v)RV.ai.chat.push({role:'user',content:v});RV.busy=true;RV.err='';RV.scrollChat=true;renderReview();
+  const turns=RV.ai.chat.filter(m=>m.role==='user'&&!m.hidden).length;
+  const msgs=RV.ai.chat.map(m=>({role:m.role,content:m.content}));
+  if(turns>=4)msgs[msgs.length-1].content+='\n\n（app 提醒：這是最後一兩輪了，請收在一個下週的小實驗：什麼時候、做什麼、怎樣算有效。）';
+  try{const out=await callAI(msgs,600);RV.ai.chat.push({role:'assistant',content:out.trim()})}catch(e){RV.err=aiErr(e);if(v)RV.ai.chat.pop()}
+  RV.busy=false;RV.scrollChat=true;draftRv();renderReview()}
+
+/* ---------- 設定 ---------- */
+const ANCHORS=['刷完牙','關燈前','躺上床前'];
+let confirmClear=false,tagFormOpen=false;
+function renderSet(){const st=S.settings,ai=S.ai;
+  let h='<header class="head"><h1>設定</h1></header>';
+  h+='<h3 class="grp">每天</h3><div class="list"><div class="row" style="display:block;padding-block:14px"><span class="lab">在什麼之後剝今天</span><div class="seg">'
+    +ANCHORS.map(a=>'<button type="button" class="chip" data-anchor="'+a+'" aria-pressed="'+(st.anchor===a)+'">'+a+'</button>').join('')
+    +'<button type="button" class="chip" data-anchor="__own" aria-pressed="'+(!ANCHORS.includes(st.anchor))+'">'+(!ANCHORS.includes(st.anchor)?esc(st.anchor):'自己寫')+'</button></div></div>'
+    +'<label class="row" for="remind"><span class="lab">提醒時間</span><input class="field" type="time" id="remind" value="'+esc(st.remind)+'"></label>'
+    +'<label class="row" for="snd"><span class="lab">聲音</span><input type="checkbox" class="toggle" id="snd"'+(st.sound?' checked':'')+'></label></div>'
+    +'<p class="foot">網頁版不會推播，提醒時間先記著，原生版會照這個時間提醒一次。</p>';
+  h+='<h3 class="grp">每週</h3><div class="list"><label class="row" for="rvDay"><span class="lab">對帳日</span><select class="field" id="rvDay">'+WD.map((w,i)=>'<option value="'+i+'"'+(+st.reviewDay===i?' selected':'')+'>週'+w+'</option>').join('')+'</select></label></div>';
+  h+='<h3 class="grp">AI 對帳（雲端）</h3><div class="list">'
+    +'<div class="row" style="display:block;padding-block:12px"><label class="lab" for="aiKey">Anthropic API 金鑰</label><input class="field" id="aiKey" type="password" autocomplete="off" placeholder="sk-ant-…" value="'+esc(ai.key)+'" style="margin-top:8px"></div>'
+    +'<div class="row" style="display:block;padding-block:12px"><label class="lab" for="aiModel">模型</label><input class="field" id="aiModel" autocomplete="off" value="'+esc(ai.model)+'" style="margin-top:8px"></div>'
+    +'<label class="row" for="aiEarly"><span class="lab">試用：提早開放 AI 候選<small>書的建議是前三週先累積資料，不找模式</small></span><input type="checkbox" class="toggle" id="aiEarly"'+(ai.early?' checked':'')+'></label></div>'
+    +'<p class="foot">只有在週對帳按下「請 AI 讀」時，最近四週的語音文字和評分才會送到 Anthropic。金鑰只存在這支手機，匯出備份不含金鑰。</p>';
+  h+='<h3 class="grp">情境標籤</h3><div class="list">'+st.tags.map((tg,i)=>'<div class="row"><span class="lab">'+esc(tg.name)+'<small>'+esc(tg.def)+'</small></span><button type="button" class="pill" data-deltag="'+i+'">移除</button></div>').join('');
+  if(tagFormOpen)h+='<div class="tagForm"><input class="field" id="tgName" maxlength="8" placeholder="標籤名，例如：會議"><input class="field" id="tgDef" placeholder="一行定義，例如：超過十五分鐘、有固定時間的通話或見面"><div style="display:flex;gap:8px"><button type="button" class="mini-btn" id="tgAdd">加入</button><button type="button" class="mini-btn ghost" id="tgCancel">取消</button></div></div>';
+  else if(st.tags.length<5)h+='<button type="button" class="row act" id="tgOpen"><span class="lab">新增標籤</span></button>';
+  h+='</div><p class="foot">最多五個，每個都要寫一行定義。前兩週先不用，第三週再開比較好；一季之內不改定義，不然前後的數字對不起來。</p>';
+  h+='<h3 class="grp">斷掉的時候</h3><div class="card" style="padding:12px"><textarea class="say" id="restart" rows="2" style="font-size:17px;min-height:64px">'+esc(st.restart)+'</textarea></div><p class="foot">這條規則現在寫好，斷掉那天就不用重想。</p>';
+  h+='<h3 class="grp">資料</h3><div class="list">'
+    +'<button type="button" class="row act" id="exp"><span class="lab">匯出備份檔</span></button>'
+    +'<button type="button" class="row act" id="expCopy"><span class="lab">複製備份文字</span></button>'
+    +'<button type="button" class="row act" id="imp"><span class="lab">匯入備份</span></button>'
+    +(Object.keys(S.days).length===0&&Object.keys(S.frags).length===0?'<button type="button" class="row act" id="demo"><span class="lab">看看一個月後的樣子<small>載入示範資料，看完可以清除</small></span></button>':'')
+    +'<button type="button" class="row danger" id="wipe"><span class="lab">'+(confirmClear?'再按一次，清除全部':'清除全部資料')+'</span></button></div>'
+    +'<p class="foot">資料只存在這支手機的瀏覽器裡。刪掉主畫面捷徑會連資料一起刪，記得定期匯出。</p>';
+  if(S.log.length)h+='<h3 class="grp">系統調整紀錄</h3><div class="list">'+S.log.slice(0,10).map(l=>'<div class="logItem">'+esc(l.d)+'｜'+esc(l.what)+'</div>').join('')+'</div>';
+  h+='<p class="foot" style="margin-top:28px;text-align:center">蒜數 手感原型 0.3</p>';
+  $('#pSet').innerHTML=h;bindSet()}
+function bindSet(){const st=S.settings;const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn)};
+  document.querySelectorAll('[data-anchor]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.anchor==='__own'){openAsk('在什麼之後剝今天？','例如：洗完澡',st.anchor,v=>{if(v){st.anchor=v;logChange('錨點改成「'+v+'」');save();renderSet();renderMain()}});return}
+    st.anchor=b.dataset.anchor;logChange('錨點改成「'+st.anchor+'」');save();renderSet();renderMain()}));
+  on('remind','change',e=>{st.remind=e.target.value;logChange('提醒時間改成 '+st.remind);save();renderSet()});
+  on('snd','change',e=>{st.sound=e.target.checked;save()});
+  on('rvDay','change',e=>{st.reviewDay=+e.target.value;logChange('對帳日改成週'+WD[st.reviewDay]);save();renderSet();renderMore();renderMain()});
+  on('aiKey','change',e=>{S.ai.key=e.target.value.trim();save();toast(S.ai.key?'金鑰存好了':'金鑰清掉了')});
+  on('aiModel','change',e=>{S.ai.model=e.target.value.trim()||'claude-sonnet-5-5';save()});
+  on('aiEarly','change',e=>{S.ai.early=e.target.checked;logChange(e.target.checked?'提早開放 AI 候選（試用）':'關閉提早開放 AI 候選');save();renderMore()});
+  on('tgOpen','click',()=>{tagFormOpen=true;renderSet();$('#tgName').focus()});
+  on('tgCancel','click',()=>{tagFormOpen=false;renderSet()});
+  on('tgAdd','click',()=>{const n=$('#tgName').value.trim(),d=$('#tgDef').value.trim();if(!n||!d){($('#tgName').value.trim()?$('#tgDef'):$('#tgName')).focus();return}
+    st.tags.push({name:n,def:d,added:dk()});logChange('新增標籤「'+n+'」：'+d);tagFormOpen=false;save();renderSet()});
+  document.querySelectorAll('[data-deltag]').forEach(b=>b.addEventListener('click',()=>{const tg=st.tags.splice(+b.dataset.deltag,1)[0];logChange('移除標籤「'+tg.name+'」');save();renderSet()}));
+  on('restart','change',e=>{st.restart=e.target.value.trim()||blank().settings.restart;save()});
+  on('exp','click',exportFile);on('expCopy','click',copyBackup);on('imp','click',openImport);on('demo','click',loadDemo);
+  on('wipe','click',()=>{if(!confirmClear){confirmClear=true;renderSet();setTimeout(()=>{confirmClear=false;renderSet()},4000);return}
+    try{localStorage.removeItem(KEY)}catch(e){}const keep=S.ai;S=blank();S.ai=keep;S.onboarded=true;confirmClear=false;P.balls=[];save();renderAll()});
+}
+function backupText(){const o=JSON.parse(JSON.stringify(S));o.ai=Object.assign({},o.ai,{key:''});return JSON.stringify(o)}
+function exportFile(){try{const b=new Blob([backupText()],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='蒜數備份-'+dk()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){}toast('如果沒有開始下載，改用「複製備份文字」')}
+function copyBackup(){const t=backupText();const done=()=>toast('備份文字已複製，貼到備忘錄存著');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(()=>openText(t))}else openText(t)}
+function openText(t){const s=document.createElement('div');s.className='sheet';s.id='sheet';s.innerHTML='<div class="sheetBar"><button class="glassBtn" id="sx" type="button" aria-label="關閉">×</button><span class="t">備份文字</span><span class="s"></span></div><div class="sheetBody"><p class="lede">全選後複製，貼到備忘錄存著。</p><textarea class="say" readonly style="min-height:300px;font-size:13px">'+esc(t)+'</textarea></div>';document.body.appendChild(s);s.querySelector('#sx').onclick=()=>s.remove();const ta=s.querySelector('textarea');ta.focus();ta.select()}
+function openImport(){const s=document.createElement('div');s.className='sheet';s.id='sheet';
+  s.innerHTML='<div class="sheetBar"><button class="glassBtn" id="sx" type="button" aria-label="關閉">×</button><span class="t">匯入備份</span><span class="s"></span></div><div class="sheetBody"><p class="lede">選備份檔，或把備份文字貼進來。匯入會取代這支手機上現在的資料（AI 金鑰保留）。</p><div class="stack"><input type="file" id="impFile" accept=".json,application/json,text/plain" class="field"><textarea class="say" id="impTxt" placeholder="或貼上備份文字" style="min-height:160px;font-size:14px"></textarea><p class="err" id="impErr" hidden></p><button class="primary" id="impGo" type="button">匯入</button></div></div>';
+  document.body.appendChild(s);s.querySelector('#sx').onclick=()=>s.remove();
+  s.querySelector('#impFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{s.querySelector('#impTxt').value=r.result};r.readAsText(f)});
+  s.querySelector('#impGo').addEventListener('click',()=>{const err=s.querySelector('#impErr');try{const o=JSON.parse(s.querySelector('#impTxt').value);if(!o||typeof o.days!=='object')throw 0;
+    const key=S.ai.key;S=merge(o);S.ai.key=key;S.onboarded=true;save();s.remove();renderAll();toast('匯入好了')}catch(e){err.hidden=false;err.textContent='讀不懂這份備份。確認貼上的是完整的備份文字，從 { 開始、到 } 結束。'}})}
+function openAsk(title,ph,val,cb){const s=document.createElement('div');s.className='sheet';s.id='sheet';
+  s.innerHTML='<div class="sheetBar"><button class="glassBtn" id="sx" type="button" aria-label="取消">×</button><span class="t">錨點</span><span class="s"></span></div><div class="sheetBody"><h2>'+esc(title)+'</h2><input class="field" id="askIn" placeholder="'+esc(ph)+'" value="'+(ANCHORS.includes(val)?'':esc(val))+'"><button class="primary" id="askOk" type="button">好</button></div>';
+  document.body.appendChild(s);s.querySelector('#sx').onclick=()=>s.remove();s.querySelector('#askOk').onclick=()=>{const v=s.querySelector('#askIn').value.trim();s.remove();cb(v)}}
+let toastT=0;function toast(msg){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');
+  t.style.cssText='position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:12px 18px;border-radius:999px;font-size:15px;z-index:80;max-width:calc(100% - 32px);text-align:center';document.body.appendChild(t)}
+  t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},2600)}
+
+/* ---------- 示範資料 ---------- */
+function loadDemo(){const t=dk();const days={},frags={};
+  const meet=['跟合作方開會，講了一個多小時','下午有會議，會後一直在回訊息','開完會有點累，先滑了一下手機'];
+  const work=['開始剪片了','腳本寫完一段','在整理拍攝清單','研究了一下收音麥克風','回了一輪訊息才開工','去咖啡廳寫稿'];
+  for(let i=27;i>=1;i--){const k=addDays(t,-i);const base=parse(k);const r=Math.random();if(r<.08)continue;if(r<.11){days[k]={skip:true,at:0};continue}
+    const hasMeet=Math.random()<.35;const pick=w=>{const x=Math.random();return x<w[0]?'順':x<w[0]+w[1]?'普通':'卡'};
+    const pm=hasMeet?pick([.1,.25]):pick([.45,.35]);
+    days[k]={s:[{r:pick([.55,.3]),t:'',tags:[]},{r:pm,t:'',tags:[]},{r:pick([.45,.4]),t:'',tags:[]}],at:0,line:'今天收好了。'};
+    const fs=[];const ts=(h,mm)=>new Date(base.getFullYear(),base.getMonth(),base.getDate(),h,mm).getTime();
+    if(Math.random()<.7)fs.push({t:work[Math.floor(Math.random()*work.length)],ts:ts(10,10+Math.floor(Math.random()*40)),seg:0});
+    if(hasMeet)fs.push({t:meet[Math.floor(Math.random()*meet.length)],ts:ts(15,Math.floor(Math.random()*50)),seg:1});
+    else if(Math.random()<.5)fs.push({t:work[Math.floor(Math.random()*work.length)],ts:ts(14,Math.floor(Math.random()*50)),seg:1});
+    if(Math.random()<.4)fs.push({t:'晚上看了一部紀錄片',ts:ts(21,5),seg:2});
+    frags[k]=fs}
+  S.days=days;S.frags=frags;S.created=addDays(t,-27);S.demo=true;
+  const rv=addDays(t,-7);S.reviews={};S.reviews[rv]={memory:'這週還行，週三很爛。',gap:'記得週三很爛，紀錄上只有下午卡。',action:{when:'週二、週四下午會議後',what:'先只打開專案檔十五分鐘'},lastResult:'',done:true,at:0,ai:{cands:[],chat:[],added:[]}};
+  S.cands=[];save();P.balls=[];renderAll();goPage(0,true);toast('示範資料載好了，這是籃子頁')}
+function clearDemo(){S.days={};S.frags={};S.reviews={};S.cands=[];S.created=null;S.demo=false;save();P.balls=[];renderAll()}
+
+/* ---------- 首次打開 ---------- */
+function onboard(step){let o=$('#ob');if(!o){o=document.createElement('div');o.id='ob';o.className='ob';o.setAttribute('role','dialog');document.body.appendChild(o)}
+  const st=S.settings;let h='';
+  if(step===0)h='<div class="obArt">'+orangeSVG(['順','普通','卡'],{leaf:true,seeds:[2,1,1]})+'</div><h1>蒜數</h1><p>白天想到就說一句，那一瓣就長出一條根。</p><p>睡前把今天剝成三瓣：上午、下午、晚上，<br>每瓣點一下順、普通、卡。</p><button class="primary" id="obNext" type="button">好</button><div class="obStep">1 / 3</div>';
+  else if(step===1)h='<h1 style="font-size:28px">在什麼之後剝？</h1><p>選一個每天晚上都會做的事。<br>做完它，就剝今天。</p><div class="chips">'+ANCHORS.map(a=>'<button type="button" class="chip" data-oa="'+a+'" aria-pressed="'+(st.anchor===a)+'">'+a+'</button>').join('')+'</div><button class="primary" id="obNext" type="button">下一步</button><div class="obStep">2 / 3</div>';
+  else h='<h1 style="font-size:28px">先寫好斷掉那天怎麼辦</h1><p>一定會有沒剝的日子。到時候照這句做就好。</p><textarea class="say" id="obRestart" rows="2" style="font-size:18px;min-height:72px">'+esc(st.restart)+'</textarea><p style="font-size:14px;margin-top:12px">大部分人要一到幾個月才覺得不費力，前幾週覺得累是正常的。</p><button class="primary" id="obNext" type="button">記住了，開始</button><div class="obStep">3 / 3</div>';
+  o.innerHTML=h;
+  o.querySelectorAll('[data-oa]').forEach(b=>b.addEventListener('click',()=>{st.anchor=b.dataset.oa;o.querySelectorAll('[data-oa]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
+  o.querySelector('#obNext').addEventListener('click',()=>{if(step===2){const v=$('#obRestart').value.trim();if(v)st.restart=v;S.onboarded=true;save();o.remove();renderAll();return}onboard(step+1)})}
+
+/* ---------- 啟動 ---------- */
+function renderAll(){renderMain();renderMore();renderSet();requestAnimationFrame(()=>{sizePile();buildPile();startLoop()})}
+let lastDay=dk();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(dk()!==lastDay){lastDay=dk();peel=null;lock(false);viewMonth=null;renderAll()}startLoop()}});
+addEventListener('resize',()=>{const pg=curPage();sizePile();for(let i=0;i<60;i++)stepPile(true);draw();goPage(pg,false)});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readCols();draw()});
+new MutationObserver(()=>{readCols();draw()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+readCols();renderAll();
+requestAnimationFrame(()=>{goPage(1,false);syncDots()});
+if(!S.onboarded)onboard(0);
+})();
+</script>
+</body></html>

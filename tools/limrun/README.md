@@ -21,3 +21,12 @@
 ## 它走的流程
 
 首次打開三步 → 記一句 → 剝三瓣（看完成語與籃子落下）→ 籃子頁 → 週對帳到完成 → 關掉重開看資料還在不在 → 設定頁清除、載示範資料 → 示範資料的對帳走到 AI 那步、按「請 AI 讀」看沒金鑰的錯誤 → 切深色模式再看主畫面和籃子。
+
+## 實測筆記（2026-11-07，跑了四台之後）
+
+- 模擬器是英文鍵盤，`typeText` 打不出中文，腳本的輸入都用英文；中文顯示靠示範資料驗。
+- TextField 的 placeholder 在元素樹的 AXValue，不在 AXLabel；腳本用 type=textfield 找欄位。
+- 頁點的 label 跟頁面標題重複，點頁點要限定 button 並取最上面那個；判斷目前在哪一頁只看元件的 x，垂直捲動不會影響。
+- `scroll` 帶 coordinate 會逾時，腳本用 performActions 自己拖；鍵盤浮著會擋住 tap 與拖曳，腳本會先往下拖把它收掉。
+- 一台模擬器跑完整輪約 4 分鐘；點數用完會在 create 那步回 400 NoSubscription。
+- 這套實測抓到的真 bug：app 一打開停在籃子頁。修法在 `ios/Suanshu/Views/RootView.swift` 的 `.defaultScrollAnchor(.center)`。

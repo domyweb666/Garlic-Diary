@@ -29,6 +29,8 @@ struct RootView: View {
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.paging)
+            // 一開始就停在中間那頁；只靠 scrollPosition 的初始值，第一次排版不會捲過去
+            .defaultScrollAnchor(.center)
             .scrollPosition(id: $ui.page)
             .scrollIndicators(.hidden)
             .scrollDisabled(ui.locked)

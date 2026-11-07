@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		5A1A000100000000000000BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A1A000100000000000000A0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A1A000100000000000000A1;
+			remoteInfo = Suanshu;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		5A1A000100000000000000A2 /* Suanshu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Suanshu.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A1A000100000000000000B2 /* SuanshuUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SuanshuUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = Suanshu;
 			sourceTree = "<group>";
 		};
+		5A1A000100000000000000B3 /* SuanshuUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SuanshuUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5A1A000100000000000000A7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A1A000100000000000000B7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				5A1A000100000000000000A3 /* Suanshu */,
+				5A1A000100000000000000B3 /* SuanshuUITests */,
 				5A1A000100000000000000A5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				5A1A000100000000000000A2 /* Suanshu.app */,
+				5A1A000100000000000000B2 /* SuanshuUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = 5A1A000100000000000000A2 /* Suanshu.app */;
 			productType = "com.apple.product-type.application";
 		};
+		5A1A000100000000000000B1 /* SuanshuUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A1A000100000000000000BC /* Build configuration list for PBXNativeTarget "SuanshuUITests" */;
+			buildPhases = (
+				5A1A000100000000000000B6 /* Sources */,
+				5A1A000100000000000000B7 /* Frameworks */,
+				5A1A000100000000000000B8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5A1A000100000000000000B9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5A1A000100000000000000B3 /* SuanshuUITests */,
+			);
+			name = SuanshuUITests;
+			packageProductDependencies = (
+			);
+			productName = SuanshuUITests;
+			productReference = 5A1A000100000000000000B2 /* SuanshuUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					5A1A000100000000000000A1 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					5A1A000100000000000000B1 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 5A1A000100000000000000A1;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				5A1A000100000000000000A1 /* Suanshu */,
+				5A1A000100000000000000B1 /* SuanshuUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		5A1A000100000000000000A8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A1A000100000000000000B8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5A1A000100000000000000B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5A1A000100000000000000B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A1A000100000000000000A1 /* Suanshu */;
+			targetProxy = 5A1A000100000000000000BA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5A1A000100000000000000AA /* Debug */ = {
@@ -305,6 +380,52 @@
 			};
 			name = Release;
 		};
+		5A1A000100000000000000BD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.domyweb.suanshu.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Suanshu;
+			};
+			name = Debug;
+		};
+		5A1A000100000000000000BE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.domyweb.suanshu.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Suanshu;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -322,6 +443,15 @@
 			buildConfigurations = (
 				5A1A000100000000000000AD /* Debug */,
 				5A1A000100000000000000AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5A1A000100000000000000BC /* Build configuration list for PBXNativeTarget "SuanshuUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A1A000100000000000000BD /* Debug */,
+				5A1A000100000000000000BE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

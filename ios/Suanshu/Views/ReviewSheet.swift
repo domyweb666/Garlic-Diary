@@ -319,6 +319,7 @@ struct ReviewBody: View {
             title("先說記憶")
             lede("資料還沒打開。這週你記得是怎樣的？一兩句，越直覺越好。")
             SayField(text: $rv.memory, placeholder: "例如：這週還行，週三很爛。", lines: 4)
+                .accessibilityIdentifier("review-memory")
             PrimaryButton(title: "打開這週的紀錄", enabled: !rv.memory.trimmed.isEmpty) { rv.next(store) }
                 .padding(.top, 18)
 
@@ -465,8 +466,10 @@ struct ReviewBody: View {
             VStack(spacing: 12) {
                 TextField("什麼時候？例如：週二、週四下午會議後", text: $rv.when)
                     .field()
+                    .accessibilityIdentifier("review-when")
                 TextField("做什麼？例如：先只打開專案檔十五分鐘", text: $rv.what)
                     .field()
+                    .accessibilityIdentifier("review-what")
             }
             PrimaryButton(title: "完成對帳", enabled: !rv.when.trimmed.isEmpty && !rv.what.trimmed.isEmpty) {
                 rv.finish(store)

@@ -8,3 +8,6 @@ ios/Payload/
 ios/*.ipa
 ios/*.zip
 .DS_Store
+ios/*.xcresult
+ios/screenshots/
+ios/xcresult-attachments/

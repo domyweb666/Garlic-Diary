@@ -98,6 +98,8 @@ struct PageDots: View {
     let onTap: (Int) -> Void
 
     private let labels = ["籃子", "剝今天", "設定"]
+    /// 給 UI 測試用：主畫面那顆「剝今天」按鈕跟頁點同名，靠 identifier 分
+    private let ids = ["dot-basket", "dot-main", "dot-settings"]
 
     var body: some View {
         HStack(spacing: 8) {
@@ -112,6 +114,7 @@ struct PageDots: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text(labels[i]))
+                .accessibilityIdentifier(ids[i])
                 .accessibilityAddTraits(i == current ? .isSelected : [])
             }
         }
